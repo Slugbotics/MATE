@@ -1,19 +1,13 @@
-import tkinter as tk
+import inputs
 
-clicks = 0
+gamepads = inputs.devices.gamepads
 
-def click():
-    global clicks
-    clicks += 1
-    if clicks == 10:
-        button.configure(text=":P")
+print(str(len(gamepads)) + " gamepads connected.")
 
-root = tk.Tk()
-root.title("ROV GUI")
-frame = tk.Frame(root, padx=50, pady=50)
-frame.pack(expand=True)
-label = tk.Label(frame, text="Nothing to see here YET...")
-label.grid(row=0, column=0)
-button = tk.Button(frame, text="But you can click anyway", command=click)
-button.grid(row=1, column=0)
-root.mainloop()
+if len(gamepads) > 0:
+    while True:
+        for device in gamepads:
+            events = device.read()
+            for event in events:
+                if event.ev_type == "Key" or event.ev_type == "Absolute":
+                    print(str(event.device) + ": " + event.ev_type + "(" + str(event.code) + ") -> " + str(event.state))

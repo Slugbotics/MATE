@@ -49,7 +49,7 @@ def open_camera():
     label_widget.configure(image=photo_image) 
   
     # Repeat the same process after every 10 seconds 
-    label_widget.after(1, open_camera) 
+    label_widget.after(10, open_camera) 
   
   
 # Create a button to open the camera in GUI app 

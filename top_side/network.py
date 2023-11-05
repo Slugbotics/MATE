@@ -1,5 +1,11 @@
 # importing the module
 import socket
 # creating a socket and connection between the devices --> sock-stream is a connection oriented TCP
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-print("socket successfully created")
+s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+print("sockets successfully created")
+
+port = 80
+host_ip = socket.gethostbyname("www.google.com")
+s1.connect((host_ip, port))
+print("the socket has connected to google")

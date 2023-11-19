@@ -2,14 +2,14 @@ import socket
 import threading
 
 HEADER = 64 #tells first message needs to be of length 64
-PORT = 23
+PORT = 5050
 
 #IPv4
 # SERVER = "169.233.155.123"
 
 #Alternate way to get the IPv4
 SERVER = socket.gethostbyname(socket.gethostname())
-#SERVER = "192.168.1.177"
+SERVER = "192.168.1.177"
 
 
 ADDR = (SERVER, PORT)
@@ -21,7 +21,7 @@ print(socket.gethostname())  #gets the host name
 
 
 # tells what type of address we are looking for
-server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind(ADDR)  #anything that connects will hit the socket
 
 
@@ -57,15 +57,15 @@ def handle_client(conn, addr):
  
 
 def start():
-    #server.listen() # listen for new connections
+    server.listen() # listen for new connections
 
     print(f"[LISTENING] Server is listening on {SERVER}")
 
     while True:
-        data, addr = server.recvfrom(1024) 
+        conn, addr = server.accept() 
 
         # wait for a new connection to the server, stores the IP address and the port it came from
-        thread = threading.Thread(target = handle_client, args = (data, addr))
+        thread = threading.Thread(target = handle_client, args = (conn, addr))
         thread.start()
         
         #tells how many threads are active, represents clients connected

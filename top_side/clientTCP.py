@@ -8,7 +8,7 @@ SERVER = socket.gethostbyname(socket.gethostname())
 SERVER = "192.168.1.177"
 ADDR = (SERVER, PORT)
 
-client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(ADDR)
 
 

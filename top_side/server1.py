@@ -9,7 +9,7 @@ PORT = 23
 
 #Alternate way to get the IPv4
 SERVER = socket.gethostbyname(socket.gethostname())
-SERVER = "192.168.1.177"
+#SERVER = "192.168.1.177"
 
 
 ADDR = (SERVER, PORT)
@@ -57,15 +57,15 @@ def handle_client(conn, addr):
  
 
 def start():
-    server.listen() # listen for new connections
+    #server.listen() # listen for new connections
 
     print(f"[LISTENING] Server is listening on {SERVER}")
 
     while True:
-        conn, addr = server.accept() 
+        data, addr = server.recvfrom(1024) 
 
         # wait for a new connection to the server, stores the IP address and the port it came from
-        thread = threading.Thread(target = handle_client, args = (conn, addr))
+        thread = threading.Thread(target = handle_client, args = (data, addr))
         thread.start()
         
         #tells how many threads are active, represents clients connected

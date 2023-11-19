@@ -1,8 +1,8 @@
 # importing the module
 import socket
 # creating a socket and connection between the devices --> sock-stream is a connection oriented TCP
-s1 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s1 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s2 = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 print("sockets successfully created")
 
 port = 80

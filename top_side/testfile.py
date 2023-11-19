@@ -21,7 +21,7 @@ print(socket.gethostname())  #gets the host name
 
 
 # tells what type of address we are looking for
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+server = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server.bind(ADDR)  #anything that connects will hit the socket
 
 

@@ -6,7 +6,7 @@ def run_client():
 
     server_ip = "169.233.179.96"
     #Get ip value later
-    server_port = 1883
+    server_port = 65534
 
     client.connect((server_ip, server_port))
 

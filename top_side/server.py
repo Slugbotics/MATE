@@ -3,7 +3,7 @@ import socket
 s = socket.socket()
 print("socket created")
 
-port = 12345
+port = 65534
 server = ''
 print("socket binded to %s" %(port))
 

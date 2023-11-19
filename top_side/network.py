@@ -1,3 +1,4 @@
+# basic file for understanding socket connection
 # importing the module
 import socket
 # creating a socket and connection between the devices --> sock-stream is a connection oriented TCP

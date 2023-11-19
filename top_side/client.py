@@ -4,9 +4,9 @@ def run_client():
     
     client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    server_ip = "169.233.233.96"
+    server_ip = "169.233.179.96"
     #Get ip value later
-    server_port = 12543
+    server_port = 1222
 
     client.connect((server_ip, server_port))
     print("connected to server")

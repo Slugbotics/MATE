@@ -1,13 +1,13 @@
 import socket
 
-s = socket.socket
+s = socket.socket()
 print("socket created")
 
 port = 12345
-server = "192.168.1.177"
+server = ''
 print("socket binded to %s" %(port))
 
-s.bind(server, port)
+s.bind((server, port))
 s.listen(1)
 print("socket is listening")
 conn, addr = s.accept()

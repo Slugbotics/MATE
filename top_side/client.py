@@ -4,11 +4,12 @@ def run_client():
     
     client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-    server_ip = "192.168.1.177"
+    server_ip = "169.233.233.96"
     #Get ip value later
-    server_port = 12345
+    server_port = 12543
 
     client.connect((server_ip, server_port))
+    print("connected to server")
 
     while True:
         msg = input("Enter message: ")

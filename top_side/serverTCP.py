@@ -5,9 +5,8 @@ PORT = 5051
 # IPv4
 # SERVER = "169.233.155.123"
 
-# Alternate way to get the IPv4
+# Alternate way to get the IPv4 dynamically
 SERVER = socket.gethostbyname(socket.gethostname())
-# SERVER = "192.168.1.177"
 
 ADDR = (SERVER, PORT)
 FORMAT = "utf-8"
@@ -22,14 +21,22 @@ def start():
     print(f"[LISTENING] Server is listening on {SERVER}")
 
     while True:
-        data, addr = server.recvfrom(1024)  # buffer size is 1024 bytes
 
-        # You can modify this part according to your needs
+        # we don't call server.listen() because we don't listen for connections only messages
+        # here we would use .recvfrom() : meaning receive from
+        # it gives us the message/data as well as the address 
+
+        # if we need more buffer size we can change to avoid dropping messages 
+        data, addr = server.recvfrom(1024) 
+        
+        # here we are checking that we can get the messages from the client
         msg = data.decode(FORMAT)
         print(f"[{addr}] {msg}")
 
-        # You can add your server logic here to process the received message
-        # ...
+        # (if needed) test that we can send messages back to the client
+        server.sendto("Hello client".encode(FORMAT), addr)
+
+
 
 
 print("[STARTING] server is starting...")

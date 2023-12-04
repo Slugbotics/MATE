@@ -4,15 +4,9 @@ def run_client():
     
     client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-<<<<<<< HEAD
-    server_ip = "169.233.233.82"
-    #Get ip value later
+    server_ip = socket.gethostbyname(socket.gethostname())
+    # get ip address of server
     server_port = 12543
-=======
-    server_ip = "169.233.179.96"
-    #Get ip value later
-    server_port = 65534
->>>>>>> d9d0b543559158a544cbb628b012d8725f8a2d6b
 
     client.connect((server_ip, server_port))
     print("connected to server")
@@ -21,7 +15,7 @@ def run_client():
         msg = input("Enter message: ")
         client.send(msg.encode("utf-8")[:1024])
         
-        response = client.recv(1024)
+        response, addr = client.recvfrom(1024)
         response = response.decode("utf-8")
 
         if response.lower() == "closed":

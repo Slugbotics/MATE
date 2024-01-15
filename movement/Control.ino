@@ -1,38 +1,47 @@
 #include <Ethernet.h>
 #include <EthernetUdp.h>
-#include "ESC.h"//esc control file
-
-EscControl thrusterControl(9); // Specify the ESC pin
+//esc control file
+#include "ESC.h"
+//esc pin reference
+EscControl thrusterControl(9);
 
 #define MAX_STRING_LENGTH 4
 #define NUMBER_OF_STRINGS 6
 #define DELIMITER_SIZE 1
 #define BUFFER_SIZE (MAX_STRING_LENGTH * NUMBER_OF_STRINGS + (NUMBER_OF_STRINGS - 1) * DELIMITER_SIZE)
-
-byte mac[]={0};//idk mac address
-unsigned int localPort = 8888;//using a random registered port
-char packetBuffer[BUFFER_SIZE];//array to hold data
-EthernetUDP Udp;//udp object
-
+//idk mac address
+byte mac[]={0};
+//using a random registered port
+unsigned int localPort = 8888;
+//array to hold data
+char packetBuffer[BUFFER_SIZE];
+//udp object
+EthernetUDP Udp;
+//9600 baud rate
 void setup() {
-  Serial.begin(9600);//9600 baud rate
-  
-  thrusterControl.init();//initialize ESC control
+  Serial.begin(9600);
+  //initialize ESC control
+  thrusterControl.init();
 
   //check if the ethernet connection fails or not
   if (Ethernet.begin(mac) == 0) {
     Serial.println("Failed to configure Ethernet using DHCP");
   }
-  Udp.begin(localPort);//initialize udp instance
+  //initialize udp instance
+  Udp.begin(localPort);
 }
 
 void loop() {
-  int packetSize = Udp.parsePacket();//get size of packet
-  if (packetSize) {//if its no zero
-    Udp.read(packetBuffer, BUFFER_SIZE);//read packet to length of buffer to prevent indexing error
-    int joystickValue = atoi(packetBuffer);//converts string to int, we could also use strtol for error handling but its probably fine
-    
-    thrusterControl.updateEsc(joystickValue);//update esc function
+  //get size of packet
+  int packetSize = Udp.parsePacket();
+  //if its no zero
+  if (packetSize) {
+    //read packet to length of buffer to prevent indexing error
+    Udp.read(packetBuffer, BUFFER_SIZE);
+    //converts string to int, we could also use strtol for error handling but its probably fine
+    int joystickValue = atoi(packetBuffer);
+    //update esc function
+    thrusterControl.updateEsc(joystickValue);
 
     //some debugging code
     Serial.print("Joystick: ");

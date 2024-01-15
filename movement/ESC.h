@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <Servo.h>
 
+//esc object functions
 class EscControl {
   public:
     EscControl(int pin);
@@ -10,6 +11,7 @@ class EscControl {
     void updateEsc(int joystickValue);
     int getEscValue();
 
+  //pin references
   private:
     Servo esc;
     int escPin;

@@ -13,6 +13,7 @@ while True:
     bot_l = (-1/math.sqrt(2), 1/math.sqrt(2))
     bot_r = (1/math.sqrt(2), 1/math.sqrt(2))
 
+
     input_x, input_y = input.left_stick
 
     magnitude = math.sqrt(input_x ** 2 + input_y ** 2)

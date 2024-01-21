@@ -13,7 +13,6 @@ while True:
     bot_l = (-1/math.sqrt(2), 1/math.sqrt(2))
     bot_r = (1/math.sqrt(2), 1/math.sqrt(2))
 
-
     input_x, input_y = input.left_stick
 
     magnitude = math.sqrt(input_x ** 2 + input_y ** 2)
@@ -21,11 +20,19 @@ while True:
     if magnitude > 1:
         input_x = input_x / magnitude
         input_y = input_y / magnitude
+    elif magnitude < 0.1:
+        input_x = 0
+        input_y = 0
 
     top_left = top_l[0] * input_x + top_l[1] * input_y
     top_right = top_r[0] * input_x + top_r[1] * input_y
     bot_left = bot_l[0] * input_x + bot_l[1] * input_y
     bot_right = bot_r[0] * input_x + bot_r[1] * input_y
+
+    top_left = round(top_left * 100)
+    top_right = round(top_right * 100)
+    bot_left = round(bot_left * 100)
+    bot_right = round(bot_right * 100)
     
     packet = str(top_left) + ", " + str(top_right) + ", " + str(bot_left) + ", " + str(bot_right)
     client.sendto(packet.encode(), ("192.168.1.177", 8888))

@@ -1,5 +1,7 @@
 import inputs
 import threading
+import math
+import time
 
 right_stick = (0, 0)
 left_stick = (0, 0)
@@ -35,3 +37,7 @@ def _run():
 
 _run_thread = threading.Thread(target=_run, daemon=True)
 _run_thread.start()
+
+
+
+#Put vector functions back later

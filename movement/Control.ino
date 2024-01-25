@@ -9,7 +9,7 @@
 #define DELIMITER_SIZE 1
 #define BUFFER_SIZE (MAX_STRING_LENGTH * NUMBER_OF_STRINGS + (NUMBER_OF_STRINGS - 1) * DELIMITER_SIZE)
 //mac address, look on the back the arduino
-byte mac[]={0x2C,0xF7,0xF1,0x08,0x30,0x84};
+byte mac[]={0xA8, 0x61, 0x0A, 0xAE, 0x95, 0xE3};
 //using a random registered port
 unsigned int localPort = 8888;
 //array to hold data

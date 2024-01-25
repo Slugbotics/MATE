@@ -4,10 +4,11 @@
 #include "ESC.h"
 
 //PUBLIC
-#define MAX_STRING_LENGTH 4
+#define MAX_STRING_LENGTH 3
 #define NUMBER_OF_STRINGS 6
 #define DELIMITER_SIZE 1
-#define BUFFER_SIZE (MAX_STRING_LENGTH * NUMBER_OF_STRINGS + (NUMBER_OF_STRINGS - 1) * DELIMITER_SIZE)
+//add one at the end for null terminator
+#define BUFFER_SIZE ((MAX_STRING_LENGTH * NUMBER_OF_STRINGS + (NUMBER_OF_STRINGS - 1) * DELIMITER_SIZE) + 1)
 //mac address, look on the back the arduino
 byte mac[]={0xA8, 0x61, 0x0A, 0xAE, 0x95, 0xE3};
 //using a random registered port
@@ -27,18 +28,18 @@ void setup() {
     thrusters[i].init();
   }
   //connection setup
-  void setupUDP()
+  setupUDP()
 }
 
 void loop() {
   //get size of packet
   int packetSize = Udp.parsePacket();
   //call read data function
-  if (packetSize) {
-    //read packet into the buffer
-    Udp.read(packetBuffer, BUFFER_SIZE);
+  if (packetSize>0) {
+    //read packet into the buffer until max last index to prevent overflow
+    int bytesRead = Udp.read(packetBuffer, min(packetSize, BUFFER_SIZE - 1));
     //set null terminator
-    packetBuffer[packetSize] = '\0';
+    bytesRead[packetSize] = '\0';
     readData(packetSize)
   }
 }

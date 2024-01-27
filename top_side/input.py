@@ -1,5 +1,7 @@
 import inputs
 import threading
+import math
+import time
 
 right_stick = (0, 0)
 left_stick = (0, 0)

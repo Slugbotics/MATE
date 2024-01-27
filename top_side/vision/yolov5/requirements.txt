@@ -1,8 +1,5 @@
-inputs==0.5
-
-
-
 # YOLOv5 requirements
+# Usage: pip install -r requirements.txt
 
 # Base ------------------------------------------------------------------------
 gitpython>=3.1.30
@@ -19,6 +16,7 @@ torch>=1.8.0  # see https://pytorch.org/get-started/locally (recommended)
 torchvision>=0.9.0
 tqdm>=4.64.0
 ultralytics>=8.0.147
+# protobuf<=3.20.1  # https://github.com/ultralytics/yolov5/issues/8012
 
 # Logging ---------------------------------------------------------------------
 # tensorboard>=2.4.1

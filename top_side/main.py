@@ -45,31 +45,32 @@ while True:
         v_translation = 0
 
     # Get thrust for each motor based on how much it points in the target direction
-    top_left = dot(top_l_direction, translation) + rotation
-    top_right = dot(top_r_direction, translation) - rotation
-    bot_left = dot(bot_l_direction, translation) + rotation
-    bot_right = dot(bot_r_direction, translation) - rotation
+    front_left = dot(top_l_direction, translation) + rotation
+    front_right = dot(top_r_direction, translation) - rotation
+    back_left = dot(bot_l_direction, translation) + rotation
+    back_right = dot(bot_r_direction, translation) - rotation
 
-    # Scale all motor values evenly to keep them from clipping 
-    max_thrust = max([abs(top_left), abs(top_right), abs(bot_left), abs(bot_right)])
+    # Scale all motor values evenly to keep them from clipping
+    max_thrust = max([abs(front_left), abs(front_right), abs(back_left), abs(back_right)])
     if max_thrust > 1:
-        top_left /= max_thrust
-        top_right /= max_thrust
-        bot_left /= max_thrust
-        bot_right /= max_thrust
+        front_left /= max_thrust
+        front_right /= max_thrust
+        back_left /= max_thrust
+        back_right /= max_thrust
 
     # Map thrust values to packet values
-    top_left = round(top_left * 100)
-    top_right = round(top_right * 100)
-    bot_left = round(bot_left * 100)
-    bot_right = round(bot_right * 100)
-    top_front = round(v_translation * 100)
-    top_back = round(v_translation * 100)
+    front_left = round(front_left * 50) + 50
+    front_right = round(front_right * 50) + 50
+    back_left = round(back_left * 50) + 50
+    back_right = round(back_right * 50) + 50
+    top_front = round(v_translation * 50) + 50
+    top_back = round(v_translation * 50) + 50
 
     # Create and send packet
-    packet = ", ".join([str(top_left), str(top_right), str(bot_left), str(bot_right), str(top_front), str(top_back)])
+    packet = ", ".join([str(front_left), str(front_right), str(back_left), str(back_right), str(top_front), str(top_back)])
+    print(packet)
     client.sendto(packet.encode(), ("192.168.1.177", 8888))
     message, addr = client.recvfrom(2000)
-    print(message)
+    #print(message)
 
     time.sleep(0.1)

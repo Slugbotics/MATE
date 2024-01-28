@@ -22,6 +22,7 @@ def main():
     # Define the window layout
 
     layout = [
+        [sg.Text("Slugbotics Driver Station", size=(60, 1), justification='center')],
         [sg.Image(filename="", key="-IMAGE-")],
 
         [sg.Button("Exit", size=(10, 1))],
@@ -31,7 +32,7 @@ def main():
 
     # Create the window and show it without the plot
 
-    window = sg.Window("Slugbotics Driver Station", layout, location=(0, 0))
+    window = sg.Window("Slugbotics Driver Station", layout, location=(0, 0), resizable=True)
 
     cap = cv2.VideoCapture(0)
 

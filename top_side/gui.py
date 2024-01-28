@@ -16,15 +16,12 @@ import numpy as np
 
 def main():
 
-    sg.theme("LightGreen")
+    sg.theme("DarkBlack")
 
 
     # Define the window layout
 
     layout = [
-
-        [sg.Text("Slugbotics Driver Station", size=(60, 1), justification="center")],
-
         [sg.Image(filename="", key="-IMAGE-")],
 
         [sg.Button("Exit", size=(10, 1))],
@@ -34,16 +31,18 @@ def main():
 
     # Create the window and show it without the plot
 
-    window = sg.Window("OpenCV Integration", layout, location=(800, 400))
-
+    window = sg.Window("Slugbotics Driver Station", layout, location=(0, 0))
 
     cap = cv2.VideoCapture(0)
 
-
+    window_maximized = False
     while True:
 
         event, values = window.read(timeout=20)
 
+        if not window_maximized:
+            window.maximize()
+        
         if event == "Exit" or event == sg.WIN_CLOSED:
 
             break

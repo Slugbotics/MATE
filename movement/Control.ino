@@ -2,13 +2,12 @@
 #include <EthernetUdp.h>
 //esc control file
 #include "ESC.h"
-
 //PUBLIC
-#define MAX_STRING_LENGTH 4
+#define MAX_STRING_LENGTH 3
 #define NUMBER_OF_STRINGS 6
 #define NUMBER_OF_THRUSTERS 6
 #define DELIMITER_SIZE 1
-#define BUFFER_SIZE (MAX_STRING_LENGTH * NUMBER_OF_STRINGS + (NUMBER_OF_STRINGS - 1) * DELIMITER_SIZE)
+#define BUFFER_SIZE (MAX_STRING_LENGTH * NUMBER_OF_STRINGS + (NUMBER_OF_STRINGS - 1) * DELIMITER_SIZE + 1)
 //mac address, look on the back the arduino
 byte mac[]={0x2C,0xF7,0xF1,0x08,0x30,0x84};
 //using a random registered port
@@ -30,7 +29,6 @@ void setup() {
   //connection setup
   void setupUDP();
 }
-
 void loop() {
   //get size of packet
   int packetSize = Udp.parsePacket();
@@ -74,16 +72,14 @@ void readData(char packetBuffer[]) {
     //get the next token
     token = strtok(NULL, ",");
   }
-  /*
-  //debugging code
+  /*//debugging code
   Serial.print("Thruster values: ");
   for (int j = 0; j < NUMBER_OF_THRUSTERS; j++) {
     Serial.print(thrusters[j].getEscValue());
     if (j < NUMBER_OF_THRUSTERS - 1) {
       Serial.print(", ");
     }
-  }
-  */
+  }*/
 }
 
 void checksum(){

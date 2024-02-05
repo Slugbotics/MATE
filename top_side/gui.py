@@ -26,6 +26,9 @@ def main():
 
     layout = [
         [sg.Push(), sg.Image(filename="", key="-IMAGE-"), sg.Push()],
+        [sg.StatusBar("Network Status"), sg.StatusBar("Last Input Sent")],
+        [sg.StatusBar("Thruster 1 status"), sg.StatusBar("Thruster 2 status")],
+        [sg.StatusBar("Thruster 3 status"), sg.StatusBar("Thruster 4 status")],
         [sg.Push(), sg.Button("Exit", size=(10, 1))],
 
     ]
@@ -57,7 +60,7 @@ def main():
 
         ret, frame = cap.read()
 
-        frame = cv2.resize(frame, (round(1920 * 0.9), round(1080 * 0.9)))
+        frame = cv2.resize(frame, (round(1920 * 0.85), round(1080 * 0.85)))
         imgbytes = cv2.imencode(".png", frame)[1].tobytes()
         window["-IMAGE-"].update(data=imgbytes)
 

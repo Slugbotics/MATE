@@ -4,6 +4,7 @@ displays:
 - camera / opencv output
 - network info
 - last input sent
+- thruster data
 
 This program will ask for permission to read the webcam (popup)'''
 
@@ -12,6 +13,8 @@ import PySimpleGUI as sg
 import cv2
 
 import numpy as np
+
+import time
 
 
 def main():
@@ -22,21 +25,25 @@ def main():
     # Define the window layout
 
     layout = [
-        [sg.Text("Slugbotics Driver Station", size=(60, 1), justification='center')],
-        [sg.Image(filename="", key="-IMAGE-")],
-
-        [sg.Button("Exit", size=(10, 1))],
+        [sg.Push(), sg.Image(filename="", key="-IMAGE-"), sg.Push()],
+        [sg.Push(), sg.Button("Exit", size=(10, 1))],
 
     ]
 
 
-    # Create the window and show it without the plot
 
     window = sg.Window("Slugbotics Driver Station", layout, location=(0, 0), resizable=True)
 
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(2)
+    if not cap.isOpened():
+        print("Camera cannot be accessed")
+        exit()
 
+    cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    cap.set(cv2.CAP_PROP_FPS, 60)
     window_maximized = False
+    # Event loop
     while True:
 
         event, values = window.read(timeout=20)
@@ -45,20 +52,19 @@ def main():
             window.maximize()
         
         if event == "Exit" or event == sg.WIN_CLOSED:
-
             break
 
 
         ret, frame = cap.read()
 
-
-        
+        frame = cv2.resize(frame, (round(1920 * 0.9), round(1080 * 0.9)))
         imgbytes = cv2.imencode(".png", frame)[1].tobytes()
-
         window["-IMAGE-"].update(data=imgbytes)
 
 
     window.close()
+    cv2.VideoCapture(2).release()
 
 
-main()
+if __name__ == "__main__":
+    main()

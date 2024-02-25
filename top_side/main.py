@@ -38,6 +38,7 @@ logging.info(f"Binding to {server_addr}:{server_port}")
 
 # Start GUI thread
 gui = threading.Thread(target=gui.main)
+gui.start()
 logging.info("Starting Driver GUI")
 
 while True:

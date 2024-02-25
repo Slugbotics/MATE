@@ -37,7 +37,7 @@ def main():
 
     window = sg.Window("Slugbotics Driver Station", layout, location=(0, 0), resizable=True)
 
-    cap = cv2.VideoCapture(2)
+    cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print("Camera cannot be accessed")
         exit()

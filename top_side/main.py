@@ -18,7 +18,7 @@ def dot(a : tuple[float, float], b : tuple[float, float]) -> float:
     return ax * bx + ay * by
 
 # Create logger object
-logging.BasicConfig(filename="topside_rover.log", encoding="utf-8", level=logging.DEBUG)
+logging.basicConfig(filename="topside_rover.log", encoding="utf-8", level=logging.DEBUG)
 
 # Direction vectors for each of the corner motors
 top_l_direction = (1/math.sqrt(2), 1/math.sqrt(2))
@@ -29,8 +29,8 @@ bot_r_direction = (1/math.sqrt(2), 1/math.sqrt(2))
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_addr = "192.168.1.155"
 server_port = 8888
-client.bind((addr, port))
-logging.(f"Binding to {server_addr}:{port}")
+client.bind((server_addr, server_port))
+logging.info(f"Binding to {server_addr}:{server_port}")
 
 while True:
     translation = input.left_stick

@@ -42,6 +42,7 @@ client_port = 8888
 
 # Start GUI thread
 gui = threading.Thread(target=gui.main)
+gui.start()
 logging.info("Starting Driver GUI")
 
 while True:

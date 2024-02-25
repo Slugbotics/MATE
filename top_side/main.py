@@ -2,6 +2,7 @@ import input
 import socket
 import time
 import math
+import logging
 
 def div_vec(v : tuple[float, float], n : float) -> tuple[float, float]:
     x, y = v
@@ -16,6 +17,9 @@ def dot(a : tuple[float, float], b : tuple[float, float]) -> float:
     bx, by = b
     return ax * bx + ay * by
 
+# Create logger object
+logging.BasicConfig(filename="topside_rover.log", encoding="utf-8", level=logging.DEBUG)
+
 # Direction vectors for each of the corner motors
 top_l_direction = (1/math.sqrt(2), 1/math.sqrt(2))
 top_r_direction = (-1/math.sqrt(2), 1/math.sqrt(2))
@@ -23,7 +27,10 @@ bot_l_direction = (-1/math.sqrt(2), 1/math.sqrt(2))
 bot_r_direction = (1/math.sqrt(2), 1/math.sqrt(2))
 
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-client.bind(("192.168.1.155", 8888))
+server_addr = "192.168.1.155"
+server_port = 8888
+client.bind((addr, port))
+logging.(f"Binding to {server_addr}:{port}")
 
 while True:
     translation = input.left_stick
@@ -68,9 +75,11 @@ while True:
 
     # Create and send packet
     packet = ", ".join([str(front_left), str(front_right), str(back_left), str(back_right), str(top_front), str(top_back)])
-    print(packet)
-    client.sendto(packet.encode(), ("192.168.1.177", 8888))
+    logging.info(f"Got packet: {packet}")
+    client_addr = "192.168.1.177"
+    client_port = 8888
+    client.sendto(packet.encode(), (client_addr, client_port))
     message, addr = client.recvfrom(2000)
-    #print(message)
+    logging.info(f"Got message: {message}")
 
     time.sleep(0.1)

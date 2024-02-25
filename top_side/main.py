@@ -73,8 +73,12 @@ while True:
     top_front = round(v_translation * 50) + 50
     top_back = round(v_translation * 50) + 50
 
+    #checksum
+    checksum = (front_left + front_right + back_left + back_right + top_front + top_back) % 256
+
+
     # Create and send packet
-    packet = ", ".join([str(front_left), str(front_right), str(back_left), str(back_right), str(top_front), str(top_back)])
+    packet= f"{front_left},{front_right},{back_left},{back_right},{top_front},{top_back},{checksum}"
     logging.info(f"Got packet: {packet}")
     client_addr = "192.168.1.177"
     client_port = 8888

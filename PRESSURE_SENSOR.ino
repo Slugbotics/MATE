@@ -1,44 +1,28 @@
 #include <Wire.h>
-#include <stdint.h>
 #include "PressureSensor.h"
 
-const int8_t RESET_PIN = 7;
-const int8_t EOC_PIN = 11;
-
-const uint16_t PSI_MIN = 0;
-const uint16_t PSI_MAX = 100;
-
-const float OUTPUT_MIN = 0.5;
-const float OUTPUT_MAX = 4.5;
-
-const float K = 0.625;
-
-const uint8_t I2C_ADDR = 0x28;
-
-PressureSensor pressureSensor(RESET_PIN, EOC_PIN, PSI_MIN, PSI_MAX, OUTPUT_MIN, OUTPUT_MAX, K);
+#define RESET_PIN  -1
+#define EOC_PIN    -1
+PressureSensor pressureSensor(RESET_PIN, EOC_PIN);
 
 void setup() {
-  Serial.begin(9600);
-  //initialize I2C communication
-  Wire.begin();
-  if (!pressureSensor.begin(I2C_ADDR, &Wire)) {
-    Serial.println("Error initializing PressureSensor!");
-    while (1);
+  Serial.begin(115200);
+  Serial.println("MPRLS:");
+  if (! pressureSensor.begin()) {
+    Serial.println("Failed to communicate with MPRLS sensor, check wiring?");
+    while (1) {
+      delay(10);
+    }
   }
+  Serial.println("Found MPRLS sensor");
 }
 
 void loop() {
-  //read pressure from the sensor
-  float pressure = pressureSensor.readPressure();
-  //print pressure to serial monitor
-  Serial.print("Pressure (PSI): ");
-  Serial.println(pressure);
-  
-  //calculate depth using the pressure
-  float depth = pressureSensor.calculateDepth(pressure);
-  Serial.print("Depth (m): ");
-  Serial.println(depth);
-  //delay
+  float pressure_hPa = pressureSensor.readPressure();
+  Serial.print("Pressure (hPa): "); Serial.println(pressure_hPa);
+  Serial.print("Pressure (PSI): "); Serial.println(pressure_hPa / 68.947572932);
+  Serial.print("Depth (m): "); Serial.println(pressureSensor.calculateDepth(pressure_hPa));
   delay(1000);
 }
+
 

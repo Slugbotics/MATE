@@ -1,88 +1,125 @@
 #include <Ethernet.h>
 #include <EthernetUdp.h>
-//esc control file
 #include "ESC.h"
-//PUBLIC
-#define MAX_STRING_LENGTH 3
-#define NUMBER_OF_STRINGS 6
+#include "PressureSensor.h"
+#include "BNO055_IMU.h"
+
 #define NUMBER_OF_THRUSTERS 6
-#define DELIMITER_SIZE 1
-#define BUFFER_SIZE (MAX_STRING_LENGTH * NUMBER_OF_STRINGS + (NUMBER_OF_STRINGS - 1) * DELIMITER_SIZE + 1)
-//mac address, look on the back the arduino
-byte mac[]={0x2C,0xF7,0xF1,0x08,0x30,0x84};
-//using a random registered port
+#define CHECKSUM_SIZE 1
+#define SEND_BUFFER_SIZE 1 
+#define BUFFER_SIZE (CHECKSUM_SIZE + NUMBER_OF_THRUSTERS)
+#define PRESSURE_READINGS 1
+#define IMU_READINGS 3
+#define SEND_BUFFER_SIZE (CHECKSUM_SIZE + PRESSURE_READINGS + IMU_READINGS)
+
+byte mac[] = {0x2C, 0xF7, 0xF1, 0x08, 0x30, 0x84};
 unsigned int localPort = 8888;
-//array to hold data
-char packetBuffer[BUFFER_SIZE];
-//udp object
+byte receiveBuffer[BUFFER_SIZE];
+byte sendBuffer[SEND_BUFFER_SIZE];
 EthernetUDP Udp;
-//esc pin reference for 6 thrusters
 EscControl thrusters[NUMBER_OF_THRUSTERS] = {EscControl(9), EscControl(10), EscControl(11), EscControl(12), EscControl(13), EscControl(14)};
+PressureSensor pressureSensor;
+MyBNO055 myIMU;
 
 void setup() {
-  //9600 baud rate
   Serial.begin(9600);
-  //initialize ESC control
   for (int i = 0; i < NUMBER_OF_THRUSTERS; i++) {
     thrusters[i].init();
   }
-  //connection setup
-  void setupUDP();
-}
-void loop() {
-  //get size of packet
-  int packetSize = Udp.parsePacket();
-  //call read data function
-  if (packetSize) {
-    //read packet into the buffer
-    Udp.read(packetBuffer, BUFFER_SIZE);
-    //set null terminator
-    packetBuffer[packetSize] = '\0';
-    readData(packetSize);
-  }
+  setupUDP();
+  pressureSensor.begin();
+  myIMU.begin();
 }
 
-void setupUDP(){
-  //check if the ethernet connection fails or not
+void loop() {
+  int packetSize = Udp.parsePacket();
+  if (packetSize) {
+    int len = Udp.read(receiveBuffer, BUFFER_SIZE);
+    
+    if (len == BUFFER_SIZE) {
+      readData(receiveBuffer);
+    } else {
+      Serial.println("Invalid packet format or size, discarding packet.");
+    }
+  }
+
+  //send pressure reading back
+  float pressureReading = pressureSensor.readPressure();
+  byte pressureByte = static_cast<byte>(pressureReading);
+
+  //assemble send buffer
+  sendBuffer[1] = pressureByte;
+  //get orientation data from IMU
+  float roll, pitch, yaw;
+  readIMUData(roll,pitch,yaw);
+
+  // Send pressure packet
+  Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+  Udp.write(sendBuffer, SEND_BUFFER_SIZE);
+  Udp.endPacket();
+
+  delay(1000); // Adjust delay as necessary
+}
+
+void setupUDP() {
   if (Ethernet.begin(mac) == 0) {
     Serial.println("Failed to configure Ethernet using DHCP");
   }
-  //initialize udp instance
   Udp.begin(localPort);
 }
 
-void readData(char packetBuffer[]) {
-  //split to segment at delimiter
-  char* token = strtok(packetBuffer, ",");
-  //pointer to end of segment
-  char* endPtr;
-  int i = 0;
-  while (token != NULL && i < NUMBER_OF_THRUSTERS) {
-    //convert string to int with strtol(segment pointer, pointer to start, base)
-    long joystickValue = strtol(token, &endPtr, 10);
-    //if the end pointer is not pointing to token and within range
-    if (token != endPtr && joystickValue>=0 && joystickValue<=200) {
-      thrusters[i].updateEsc(joystickValue);
-      i++;
-    } else {
-      Serial.print("Invalid input: ");
-      Serial.print(joystickValue);
+void readData(byte packetBuffer[]) {
+  // Extracting checksum from the packet
+  int received_checksum = 0;
+  memcpy(&received_checksum, packetBuffer, CHECKSUM_SIZE);
 
+  // Extracting thruster values from the packet
+  byte thrusterValues[NUMBER_OF_THRUSTERS];
+  memcpy(thrusterValues, packetBuffer + CHECKSUM_SIZE, NUMBER_OF_THRUSTERS);
+
+  // Verifying the checksum
+  if (checksum(thrusterValues, received_checksum)) {
+    for (int j = 0; j < NUMBER_OF_THRUSTERS; j++) {
+      // Update the thruster ESCs
+      thrusters[j].updateEsc(thrusterValues[j]);
     }
-    //get the next token
-    token = strtok(NULL, ",");
+  } else {
+    Serial.println("Checksum validation failed. Packet has not been registered.");
   }
-  /*//debugging code
-  Serial.print("Thruster values: ");
-  for (int j = 0; j < NUMBER_OF_THRUSTERS; j++) {
-    Serial.print(thrusters[j].getEscValue());
-    if (j < NUMBER_OF_THRUSTERS - 1) {
-      Serial.print(", ");
-    }
-  }*/
 }
 
-void checksum(){
-  return;
+// Checksum method, uses XOR and compares calculated and received values
+bool checksum(byte thrusterValues[], int received_checksum) {
+  int calculated_checksum = thrusterValues[0];
+  for (int i = 1; i < NUMBER_OF_THRUSTERS; i++) {
+    // XOR
+    calculated_checksum ^= thrusterValues[i];
+  }
+  // Compare with the checksum received in the packet
+  return calculated_checksum == received_checksum;
 }
+
+byte mapValueToByte(float value) {
+  // Map the value range of 0 to 360 to the byte range of 0 to 255
+  float mappedValue = (value / 360.0) * 255.0;
+  // Round the mapped value to the nearest integer
+  mappedValue = round(mappedValue);
+  // Ensure the mapped value stays within the range of 0 to 255
+  return static_cast<byte>(constrain(mappedValue, 0, 255));
+}
+
+void readIMUData(float roll,float pitch,float yaw) {
+  myIMU.getOrientation(&roll, &pitch, &yaw);
+  // Scale orientation data to fit within the range of 0 to 255
+  byte rollByte = mapValueToByte(roll);
+  byte pitchByte = mapValueToByte(pitch);
+  byte yawByte = mapValueToByte(yaw);
+  // Assemble send buffer for orientation data
+  sendBuffer[2] = rollByte;
+  sendBuffer[3] = pitchByte;
+  sendBuffer[4] = yawByte;
+}
+
+
+
 

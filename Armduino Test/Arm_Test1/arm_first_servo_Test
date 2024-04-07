@@ -18,7 +18,7 @@ Servo verticalServo;
 Servo wristServo;
 Servo clawServo;
 
-// Other output pins (replace with your pin numbers)
+// Starting Values for wrist and claw
 int wristRotValue = 90;
 int clawRotValue = 90;
 
@@ -52,10 +52,6 @@ void loop() {
 
     // Control servos
     horizontalServo.write(horizontal);
-    verticalServo.write(vertical);
-
-    wristServo.write(wrist(wrist_decrease, wrist_increase));
-    clawServo.write(claw(claw_close, claw_open));
   }
 }
 

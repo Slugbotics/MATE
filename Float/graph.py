@@ -3,7 +3,8 @@ import datetime
 import pygal
 
 
-def graph_depth(data, time):
+def graph_depth(data: list(float), time: list(datetime.datetime)) -> None:
+    """Graphs the float data, outputs to 'depth_graph.svg'"""
     if len(data) != len(time):
         raise Exception("Depth data is mismatched")
     # Generate the pressure graph
@@ -16,13 +17,18 @@ def graph_depth(data, time):
     depth_graph.add("Depth", data)
     depth_graph.render_to_file("depth_graph.svg")
 
-def convert_pressure(pressure):
-    # TODO implement pressure to depth conversion
-    return pressure
+def convert_pressure(pressure: float) -> float:
+    """Use the hydrostatic pressure equation to convert pressure to depth"""
+    density = 0.992720 # kg / m^3 
+    pressure = pressure * 100 # hPa -> Pa
+    gravity = 9.81 # m / s^2
+
+    return pressure / (density * gravity) 
 
 
-if __name__ == "__main__":
-    with open("float_data.txt") as file:
+def run(date_file: str) -> None:
+    """data_file should either be 'float_data_1.txt' or 'float_data_2.txt'"""
+    with open(date_file) as file:
         data = file.read().split("\n")
     time_axis = []
     depth_axis = []

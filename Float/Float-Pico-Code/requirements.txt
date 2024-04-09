@@ -1,0 +1,5 @@
+adafruit-circuitpython-adafruitio
+adafruit-circuitpython-ds3231
+adafruit-circuitpython-mprls
+adafruit-circuitpython-sd
+adafruit-circuitpython-motor

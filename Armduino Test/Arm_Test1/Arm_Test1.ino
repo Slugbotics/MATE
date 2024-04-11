@@ -1,6 +1,9 @@
 #include <Ethernet.h>
 #include <EthernetUdp.h>
 #include <Servo.h>
+#ifdef UDP_TX_PACKET_MAX_SIZE
+#define UDP_TX_PACKET_MAX_SIZE 256`
+#endif
 
 // Ethernet settings
 byte mac[] = {  

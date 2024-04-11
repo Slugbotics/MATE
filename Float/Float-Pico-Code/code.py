@@ -28,7 +28,7 @@ rtc.datetime = time.struct_time((2017,1,9,15,6,0,0,9,-1))
 
 
 DELAY = 0.01
-STEPS = 200
+STEPS = 360
 coils= (
 digitalio.DigitalInOut(board.GP1), # A1
 digitalio.DigitalInOut(board.GP11), # A2
@@ -42,7 +42,7 @@ for coil in coils:
     
 motor = stepper.StepperMotor(coils[0], coils[1], coils[2], coils[3], microsteps=None)
 
-file_path = "test_output.txt"
+# file_path = "test_output.txt"
 
 
 
@@ -52,16 +52,16 @@ while True:
     time.sleep(1)
     t = rtc.datetime
     time.sleep(1)
-   #print(t)
-    #print(t.tm_hour, t.tm_min, t.tm_sec)
-    #with open(file_path,"a") as out:
-    #    out.write(f'{t.tm_hour:02}:{t.tm_min:02}:{t.tm_sec:02}_{mpr.pressure}\n')
-    #print(f'{t.tm_hour:02}:{t.tm_min:02}:{t.tm_sec:02}_{mpr.pressure}')
+    print(t)
+    print(t.tm_hour, t.tm_min, t.tm_sec)
+    with open("/sd/test_output.txt","a+") as out:
+       out.write(f'{t.tm_hour:02}:{t.tm_min:02}:{t.tm_sec:02}_{mpr.pressure}\n')
+    print(f'{t.tm_hour:02}:{t.tm_min:02}:{t.tm_sec:02}_{mpr.pressure}')
     
-    #print("pressure reading", mpr.pressure)
+    print("pressure reading", mpr.pressure)
     
     for step in range(STEPS):
-        print("motor spin")
+        # print("motor spin")
         motor.onestep()
         time.sleep(DELAY)
     for step in range(STEPS):

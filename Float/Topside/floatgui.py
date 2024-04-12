@@ -4,6 +4,7 @@ import io
 from svglib.svglib import svg2rlg
 from reportlab.graphics import renderPM
 from PIL import Image
+import time
 
 def graph_depth(data, time):
     if len(data) != len(time):
@@ -22,7 +23,8 @@ layout = [
     [sg.Text('Test', text_color='white')],
     [
         sg.Button('Generate Depth Graph', size=(20, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-GENERATE-', border_width=0 , pad=((0, 10), (10, 10))),
-        sg.Button('Exit', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-EXIT-', border_width=0 , pad=((0, 10), (10, 10)))
+        sg.Button('Exit', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-EXIT-', border_width=0 , pad=((0, 10), (10, 10))),
+        sg.Button('time', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Time-', border_width=0 , pad=((0, 10), (10, 10)))
     ],
     [sg.Image(key='-IMAGE-')]
 ]
@@ -51,6 +53,7 @@ while True:
             png_data = io.BytesIO()
             image.save(png_data, format="PNG")
             window['-IMAGE-'].update(data=png_data.getvalue())
+    elif event == '-Time-':
+        time1 = time.localtime()
 
 window.close()
-

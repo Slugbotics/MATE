@@ -16,7 +16,7 @@ def graph_depth(data, time):
     depth_graph.x_title = "UTC time"
     depth_graph.y_title = "Depth (meters)"
     depth_graph.add("Depth", data)
-    depth_graph.render_to_file("depth_graph.png")
+    depth_graph.render_to_png("depth_graph.png")
     return depth_graph.render(is_unicode=True)
 
 layout = [
@@ -42,18 +42,19 @@ while True:
             lines = file.readlines()
             # Extract depth data and time
             depth_data = list(map(float, lines[0].split()))
-            time = list(map(float, lines[1].split()))
+            time2 = list(map(float, lines[1].split()))
             # Generate the graph
             graph_depth(depth_data, time)
-            drawing = svg2rlg("depth_graph.svg")
-            renderPM.drawToFile(drawing, "output.png", fmt="PNG")
+            # drawing = svg2rlg("depth_graph.svg")
+            # renderPM.drawToFile(drawing, "output.png", fmt="PNG")
             # Update the Image element with the PNG data
-            image = Image.open('output.png')
+            image = Image.open('depth_graph.png')
             image.thumbnail((400, 400))  # Resize the image if needed
             png_data = io.BytesIO()
             image.save(png_data, format="PNG")
             window['-IMAGE-'].update(data=png_data.getvalue())
     elif event == '-Time-':
         time1 = time.localtime()
+        print(time1)
 
 window.close()

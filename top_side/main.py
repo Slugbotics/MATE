@@ -36,7 +36,6 @@ server_addr = "192.168.1.155"
 server_port = 8888
 client.bind((server_addr, server_port))
 logging.info(f"Binding to {server_addr}:{server_port}")
-
 while True:
     translation = controller.left_stick
     rotation, v_translation = controller.right_stick
@@ -95,5 +94,4 @@ while True:
     client.sendto(packet.encode(), (client_addr, client_port))
     # message, addr = client.recvfrom(2000)
     # logging.info(f"Got message: {message}")
-
     time.sleep(0.1)

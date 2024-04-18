@@ -38,7 +38,7 @@ client.bind((server_addr, server_port))
 logging.info(f"Binding to {server_addr}:{server_port}")
 while True:
    translation = controller.left_stick
-    rotation, v_translation = controller.right_stick
+   rotation, v_translation = controller.right_stick
 
     # Normalization and dead zone for directional translation input
     translation_mag = magnitude(translation)

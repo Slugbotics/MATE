@@ -1,8 +1,13 @@
-import input
+from input import controller
 import socket
 import time
 import math
 import logging
+
+mc = 0
+move_controller = controller(mc)
+ac = 1
+arm_controller = controller(ac)
 
 def div_vec(v : tuple[float, float], n : float) -> tuple[float, float]:
     x, y = v
@@ -33,8 +38,8 @@ client.bind((server_addr, server_port))
 logging.info(f"Binding to {server_addr}:{server_port}")
 
 while True:
-    translation = input.left_stick
-    rotation, v_translation = input.right_stick
+    translation = controller.left_stick
+    rotation, v_translation = controller.right_stick
 
     # Normalization and dead zone for directional translation input
     translation_mag = magnitude(translation)
@@ -75,15 +80,20 @@ while True:
 
     #checksum
     checksum = (front_left + front_right + back_left + back_right + top_front + top_back) % 256
+    # Create and send packet
+    packet = ", ".join([str(front_left), str(front_right), str(back_left), str(back_right), str(top_front), str(top_back)])
+    
 
 
     # Create and send packet
-    packet= f"{front_left},{front_right},{back_left},{back_right},{top_front},{top_back},{checksum}"
-    logging.info(f"Got packet: {packet}")
+    packet = bytearray()
+    for field in [checksum, front_left, front_right, back_left, back_right, top_front, top_back]:
+        packet.append(field)
+    logging.info(f"Sending packet: {packet}")
     client_addr = "192.168.1.177"
     client_port = 8888
     client.sendto(packet.encode(), (client_addr, client_port))
-    message, addr = client.recvfrom(2000)
-    logging.info(f"Got message: {message}")
+    # message, addr = client.recvfrom(2000)
+    # logging.info(f"Got message: {message}")
 
     time.sleep(0.1)

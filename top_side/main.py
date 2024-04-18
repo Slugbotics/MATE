@@ -37,7 +37,7 @@ server_port = 8888
 client.bind((server_addr, server_port))
 logging.info(f"Binding to {server_addr}:{server_port}")
 while True:
-    translation = controller.left_stick
+   translation = controller.left_stick
     rotation, v_translation = controller.right_stick
 
     # Normalization and dead zone for directional translation input
@@ -80,10 +80,6 @@ while True:
     #checksum
     checksum = (front_left + front_right + back_left + back_right + top_front + top_back) % 256
     # Create and send packet
-
-<<<<<<< HEAD
-    mc_packet = movement_logic(move_controller)
-    ac_packet = arm_logic(arm_controller)
 
     # Create and send packet
     packet = bytearray()

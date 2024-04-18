@@ -28,7 +28,7 @@ void setup() {
   Udp.begin(localPort);
 
   // Attach servos to pins
-  horizontalServo.attach(/*pin undecided*/);
+  horizontalServo.attach(9);
   verticalServo.attach(/*pin undecided*/);
 
   wristServo.attach(/*pin undecided*/);
@@ -64,7 +64,7 @@ int wrist(int increase, int decrease) {
   // increase == 0, decrease == 1: decrease wrist value
   // increase == 1, decrease == 1: do nothing
   // increase == 0, decrease == 0: do nothing
-  return (increase && !decrease) ? wristRotValue++ : ((decrease && !increase) ? wristRotValue-- : wristRotValue);
+  return (increase && !(decrease)) ? ++wristValue : ((decrease && !(increase)) ? --wristValue : wristValue);
 }
 
 int claw(int close, int open){

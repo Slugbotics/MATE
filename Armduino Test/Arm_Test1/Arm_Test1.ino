@@ -59,7 +59,7 @@ void loop() {
   }
 }
 
-void wrist(int decrease, int increase) {
+int wrist(int increase, int decrease) {
   // increase == 1, decrease == 0: increase wrist value
   // increase == 0, decrease == 1: decrease wrist value
   // increase == 1, decrease == 1: do nothing
@@ -67,7 +67,7 @@ void wrist(int decrease, int increase) {
   return (increase && !decrease) ? wristRotValue++ : ((decrease && !increase) ? wristRotValue-- : wristRotValue);
 }
 
-void claw(int close, int open){
+int claw(int close, int open){
   // open == 1, close == 0: increase claw value
   // open == 0, close == 1: decrease claw value
   // open == 1, close == 1: do nothing

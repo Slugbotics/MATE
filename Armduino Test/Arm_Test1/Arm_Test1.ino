@@ -1,9 +1,6 @@
 #include <Ethernet.h>
 #include <EthernetUdp.h>
 #include <Servo.h>
-#ifdef UDP_TX_PACKET_MAX_SIZE
-#define UDP_TX_PACKET_MAX_SIZE 256`
-#endif
 
 // Ethernet settings
 byte mac[] = {  
@@ -39,7 +36,6 @@ void setup() {
   clawServo.attach(3);
 
   // Setup other outputs
-  pinMode(otherOutputPin, OUTPUT);
 }
 
 void loop() {
@@ -73,7 +69,7 @@ int wrist(int increase, int decrease) {
   // increase == 0, decrease == 1: decrease wrist value
   // increase == 1, decrease == 1: do nothing
   // increase == 0, decrease == 0: do nothing
-  return (increase && !(decrease)) ? ++wristValue : ((decrease && !(increase)) ? --wristValue : wristValue);
+  return (increase && !(decrease)) ? ++wristRotValue : ((decrease && !(increase)) ? --wristRotValue : wristRotValue);
 }
 
 int claw(int close, int open){
@@ -81,5 +77,5 @@ int claw(int close, int open){
   // open == 0, close == 1: decrease claw value
   // open == 1, close == 1: do nothing
   // open == 0, close == 0: do nothing
-  return (open && !close) ? clawRotValue++ : ((close && !open) ? clawRotValue-- : clawRotValue);
+  return (open && !(close)) ? ++clawRotValue : ((close && !(open)) ? --clawRotValue : wristRotValue);
 }

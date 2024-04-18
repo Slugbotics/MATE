@@ -18,7 +18,8 @@ Servo verticalServo;
 Servo wristServo;
 Servo clawServo;
 
-// Other output pins (replace with your pin numbers)
+int start_horizontal = 90;
+int start_vertical = 90;
 int wristRotValue = 90;
 int clawRotValue = 90;
 
@@ -28,11 +29,11 @@ void setup() {
   Udp.begin(localPort);
 
   // Attach servos to pins
-  horizontalServo.attach(9);
-  verticalServo.attach(/*pin undecided*/);
+  horizontalServo.attach(8);
+  verticalServo.attach(9);
 
-  wristServo.attach(/*pin undecided*/);
-  clawServo.attach(/*pin undecided*/);
+  wristServo.attach(2);
+  clawServo.attach(3);
 
   // Setup other outputs
   pinMode(otherOutputPin, OUTPUT);
@@ -40,23 +41,28 @@ void setup() {
 
 void loop() {
   int packetSize = Udp.parsePacket();
-  if (packetSize) {.
+  if (packetSize) {
     // Receive packet
     char packetBuffer[UDP_TX_PACKET_MAX_SIZE];
     Udp.read(packetBuffer, UDP_TX_PACKET_MAX_SIZE);
 
     // Parse packet
-    int horizontal, vertical, wrist_decrease, wrist_increase, claw_close, claw_open;
-    sscanf(packetBuffer, "%*d %*d %*d %*d %*d %*d %d %d %d %d %d %d",
+    int horizontal, vertical, claw_close, claw_open, wrist_decrease, wrist_increase;
+    sscanf(packetBuffer, "%d %d %d %d %d %d %*d",
      &horizontal, &vertical, &wrist_decrease, &wrist_increase, &claw_close, &claw_open);
 
     // Control servos
-    horizontalServo.write(horizontal);
-    verticalServo.write(vertical);
+    if((start_horizontal + horizontal) < 180 && (start_horizontal + horizontal) > 0){
+     horizontalServo.write(start_horizontal + horizontal);
+    }
+
+    if((start_horizontal + horizontal) < 180 && (start_horizontal + horizontal) > 0){
+      verticalServo.write(start_vertical + vertical);
+    }
 
     wristServo.write(wrist(wrist_decrease, wrist_increase));
     clawServo.write(claw(claw_close, claw_open));
-  }
+   }
 }
 
 int wrist(int increase, int decrease) {

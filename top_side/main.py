@@ -32,10 +32,15 @@ bot_l_direction = (-1/math.sqrt(2), 1/math.sqrt(2))
 bot_r_direction = (1/math.sqrt(2), 1/math.sqrt(2))
 
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+IP = "192.168.1.155"
+PORT = 8888
+client.bind((IP, PORT))
+client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_addr = "192.168.1.155"
 server_port = 8888
 client.bind((server_addr, server_port))
 logging.info(f"Binding to {server_addr}:{server_port}")
+
 while True:
    translation = controller.left_stick
    rotation, v_translation = controller.right_stick

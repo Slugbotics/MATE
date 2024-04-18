@@ -4,9 +4,9 @@ import time
 import math
 import logging
 
-mc = 0
-move_controller = controller(mc)
-ac = 1
+#mc = 0
+#move_controller = controller(mc)
+ac = 0
 arm_controller = controller(ac)
 
 def div_vec(v : tuple[float, float], n : float) -> tuple[float, float]:
@@ -81,6 +81,7 @@ while True:
     checksum = (front_left + front_right + back_left + back_right + top_front + top_back) % 256
     # Create and send packet
 
+<<<<<<< HEAD
     mc_packet = movement_logic(move_controller)
     ac_packet = arm_logic(arm_controller)
 

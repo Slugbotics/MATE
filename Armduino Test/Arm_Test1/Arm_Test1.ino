@@ -40,14 +40,14 @@ void setup() {
 
 void loop() {
   int packetSize = Udp.parsePacket();
-  if (packetSize) {
+  if (packetSize) {.
     // Receive packet
     char packetBuffer[UDP_TX_PACKET_MAX_SIZE];
     Udp.read(packetBuffer, UDP_TX_PACKET_MAX_SIZE);
 
     // Parse packet
     int horizontal, vertical, wrist_decrease, wrist_increase, claw_close, claw_open;
-    sscanf(packetBuffer, "[%*d], %*d, %*d, %*d, %*d, %*d, %*d, [%*d], %d, %d, %d, %d, %d, %d",
+    sscanf(packetBuffer, "%*d %*d %*d %*d %*d %*d %d %d %d %d %d %d",
      &horizontal, &vertical, &wrist_decrease, &wrist_increase, &claw_close, &claw_open);
 
     // Control servos

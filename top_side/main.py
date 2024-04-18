@@ -80,8 +80,6 @@ while True:
     #checksum
     checksum = (front_left + front_right + back_left + back_right + top_front + top_back) % 256
     # Create and send packet
-
-    # Create and send packet
     packet = bytearray()
     for field in [checksum, front_left, front_right, back_left, back_right, top_front, top_back]:
         packet.append(field)

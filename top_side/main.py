@@ -1,26 +1,24 @@
 from input import controller
+import vec_util
+
+
 import socket
 import time
 import math
 import logging
 
-#mc = 0
-#move_controller = controller(mc)
-ac = 0
-arm_controller = controller(ac)
-
-def div_vec(v : tuple[float, float], n : float) -> tuple[float, float]:
-    x, y = v
-    return (x / n, y / n)
-
-def magnitude(vec : tuple[float, float]) -> float:
-    x, y = vec
-    return math.sqrt(x * x + y * y)
-
-def dot(a : tuple[float, float], b : tuple[float, float]) -> float:
-    ax, ay = a
-    bx, by = b
-    return ax * bx + ay * by
+try: 
+    mc = 0
+    move_controller = controller(mc)
+except IndexError as e:
+    print("Error: Driver Controller not connected")
+    exit()
+try:
+    ac = 1
+    arm_controller = controller(ac)
+except IndexError as e:
+    print("Error: operator controller not connected")
+    exit()
 
 # Create logger object
 logging.basicConfig(filename="topside_rover.log", encoding="utf-8", level=logging.DEBUG)
@@ -31,24 +29,23 @@ top_r_direction = (-1/math.sqrt(2), 1/math.sqrt(2))
 bot_l_direction = (-1/math.sqrt(2), 1/math.sqrt(2))
 bot_r_direction = (1/math.sqrt(2), 1/math.sqrt(2))
 
-client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-IP = "192.168.1.155"
-PORT = 8888
-client.bind((IP, PORT))
+"""
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_addr = "192.168.1.155"
 server_port = 8888
 client.bind((server_addr, server_port))
 logging.info(f"Binding to {server_addr}:{server_port}")
-
+client_addr = "192.168.1.177"
+client_port = 8888
+""" 
 while True:
-   translation = controller.left_stick
-   rotation, v_translation = controller.right_stick
+    translation = move_controller.left_stick
+    rotation, v_translation = move_controller.right_stick
 
     # Normalization and dead zone for directional translation input
-    translation_mag = magnitude(translation)
+    translation_mag = vec_util.magnitude(translation)
     if translation_mag > 1:
-        translation = div_vec(translation, translation_mag)
+        translation = vec_util.div_vec(translation, translation_mag)
     elif translation_mag < 0.1:
         translation = (0, 0)
 
@@ -61,10 +58,10 @@ while True:
         v_translation = 0
 
     # Get thrust for each motor based on how much it points in the target direction
-    front_left = dot(top_l_direction, translation) + rotation
-    front_right = dot(top_r_direction, translation) - rotation
-    back_left = dot(bot_l_direction, translation) + rotation
-    back_right = dot(bot_r_direction, translation) - rotation
+    front_left = vec_util.dot(top_l_direction, translation) + rotation
+    front_right = vec_util.dot(top_r_direction, translation) - rotation
+    back_left = vec_util.dot(bot_l_direction, translation) + rotation
+    back_right = vec_util.dot(bot_r_direction, translation) - rotation
 
     # Scale all motor values evenly to keep them from clipping
     max_thrust = max([abs(front_left), abs(front_right), abs(back_left), abs(back_right)])
@@ -82,16 +79,17 @@ while True:
     top_front = round(v_translation * 50) + 50
     top_back = round(v_translation * 50) + 50
 
+
     #checksum
     checksum = (front_left + front_right + back_left + back_right + top_front + top_back) % 256
     # Create and send packet
     packet = bytearray()
     for field in [checksum, front_left, front_right, back_left, back_right, top_front, top_back]:
-        packet.append(field)
+        packet.extend(field.to_bytes(1, byteorder="big", signed=False))
+    packet.extend(arm_controller.gen_packet())
+    print(packet)
     logging.info(f"Sending packet: {packet}")
-    client_addr = "192.168.1.177"
-    client_port = 8888
-    client.sendto(packet.encode(), (client_addr, client_port))
+    #client.sendto(packet.encode(), (client_addr, client_port))
     # message, addr = client.recvfrom(2000)
     # logging.info(f"Got message: {message}")
     time.sleep(0.1)

@@ -19,6 +19,7 @@ torch>=1.8.0  # see https://pytorch.org/get-started/locally (recommended)
 torchvision>=0.9.0
 tqdm>=4.64.0
 ultralytics>=8.0.147
+bitarray==2.9.2
 
 # Logging ---------------------------------------------------------------------
 # tensorboard>=2.4.1

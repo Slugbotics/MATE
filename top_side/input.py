@@ -46,7 +46,7 @@ class controller:
                         break
                     case "BTN_EAST":
                         self.b_pressed = ('1' if event.state == 1 else '0')
-                    case "BTN_WEST":
+                    case "BTN_NORTH":
                         self.x_pressed = ('1' if event.state == 1 else '0')
                     case "BTN_TL":
                         self.btn_tl = ('1' if event.state == 1 else '0')

@@ -40,7 +40,8 @@ layout = [
         sg.Button('time', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Time-', border_width=0 , pad=((0, 10), (10, 10))),
         sg.Button('Generate Table', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Table-', border_width=0 , pad=((0, 10), (10, 10)))
     ],
-    [sg.Image(key='-IMAGE-')]
+    [sg.Image(key='-IMAGE-')],[sg.Table(values=[], headings=['time','depth'], key="-TBL1-", visible=False,auto_size_columns=True,display_row_numbers=False,justification='center',expand_x=True,
+   expand_y=True,)]
 ]
 
 sg.theme_background_color('black')  # Setting the overall theme background color to black
@@ -79,22 +80,11 @@ while True:
             # renderPM.drawToFile(drawing, "output.png", fmt="PNG")
             # Update the Image element with the PNG data
             image = Image.open('depth_graph.png')
-            image.thumbnail((400, 400))  # Resize the image if needed
+            image.thumbnail((1000, 1000))  # Resize the image if needed
             png_data = io.BytesIO()
             image.save(png_data, format="PNG")
-            window.close()
-            layout = [
-            [sg.Text('Test', text_color='white')],
-            [
-            sg.Button('Generate Depth Graph', size=(20, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-GENERATE-', border_width=0 , pad=((0, 10), (10, 10))),
-            sg.Button('Exit', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-EXIT-', border_width=0 , pad=((0, 10), (10, 10))),
-            sg.Button('time', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Time-', border_width=0 , pad=((0, 10), (10, 10))),
-            sg.Button('Generate Table', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Table-', border_width=0 , pad=((0, 10), (10, 10)))
-            ],
-            [sg.Image(key='-IMAGE-')]
-            ]
-            window = sg.Window('Window', layout, no_titlebar=False, location=(0,0), size=(1200,1600), keep_on_top=True, background_color='black', finalize = True)
-            window['-IMAGE-'].update(data=png_data.getvalue())
+            window['-IMAGE-'].update(data=png_data.getvalue(),visible=True)
+            window['-TBL1-'].update(visible = False)
     elif event == '-Time-':
         time1 = time.localtime()
         print(time1)
@@ -118,18 +108,14 @@ while True:
                 i += 1
             for x in split:
                 x[1] = convert_pressure(float(x[1]))
-            tbl1 = sg.Table(values=split, headings=['time','depth'],auto_size_columns=True,display_row_numbers=False,justification='center', key='-TABLE-',expand_x=True,
-   expand_y=True,)
-            layout = [[sg.Text('Test', text_color='white')],
-            [
-            sg.Button('Generate Depth Graph', size=(20, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-GENERATE-', border_width=0 , pad=((0, 10), (10, 10))),
-            sg.Button('Exit', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-EXIT-', border_width=0 , pad=((0, 10), (10, 10))),
-            sg.Button('time', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Time-', border_width=0 , pad=((0, 10), (10, 10))),
-            sg.Button('Generate Table', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Table-', border_width=0 , pad=((0, 10), (10, 10)))
-            ],
-            [tbl1],[sg.Image(key='-IMAGE-')]]
-            window.close()
-            window = sg.Window('Window', layout, no_titlebar=False, location=(0,0), size=(1200,1600), keep_on_top=True, background_color='black')
+            
+            window["-IMAGE-"].update(data=None)
+            window["-TBL1-"].update(values=split,visible = True)
+            # window["-IMAGE-"].update(visible=False)
+            # layout = [[tbl1]]
+            # window.extend_layout(window,layout)
+            # window.close()
+            # window = sg.Window('Window', layout, no_titlebar=False, location=(0,0), size=(1200,1600), keep_on_top=True, background_color='black')
 
 
 window.close()

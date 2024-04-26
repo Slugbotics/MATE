@@ -38,7 +38,8 @@ layout = [
         sg.Button('Generate Depth Graph', size=(20, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-GENERATE-', border_width=0 , pad=((0, 10), (10, 10))),
         sg.Button('Exit', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-EXIT-', border_width=0 , pad=((0, 10), (10, 10))),
         sg.Button('time', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Time-', border_width=0 , pad=((0, 10), (10, 10))),
-        sg.Button('Generate Table', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Table-', border_width=0 , pad=((0, 10), (10, 10)))
+        sg.Button('Generate Table', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Table-', border_width=0 , pad=((0, 10), (10, 10))),
+        sg.Button('Down', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Table-', border_width=0 , pad=((0, 10), (10, 10)))
     ],
     [sg.Image(key='-IMAGE-')],[sg.Table(values=[], headings=['time','depth'], key="-TBL1-", visible=False,auto_size_columns=True,display_row_numbers=False,justification='center',expand_x=True,
    expand_y=True,)]

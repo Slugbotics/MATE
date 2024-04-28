@@ -5,6 +5,44 @@ from svglib.svglib import svg2rlg
 from reportlab.graphics import renderPM
 from PIL import Image
 import time
+import socket
+def receive_file():
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_ip = "100.64.60.135"
+    server_port = 8000
+    client.connect((server_ip, server_port))
+
+    filename = client.recv(1024).decode("utf-8")
+    print(f"Received: {filename}")
+    file = open(filename, "w")
+
+    data = client.recv(1024).decode("utf-8")
+    print(f"[RECV] Receiving the file data.")
+    file.write(data)
+    client.send("File data received".encode("utf-8"))
+
+    file.close()
+    client.close()
+    print("connection to server closed")
+
+def run_client(data):
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    #server_ip = "0.0.0.0"
+    server_ip = "100.64.60.135"
+    server_port = 8000
+    print("test")
+    client.connect((server_ip, server_port))
+    print("test2")
+    
+    client.send(data.encode("utf-8"))
+    response = client.recv(1024)
+    response = response.decode("utf-8")
+       
+    if response.lower() == "closed":
+        print(f"received: {response}")
+    
+    client.close()
+    print("connection to server closed")
 
 def graph_depth(data, time):
     if len(data) != len(time):
@@ -39,7 +77,7 @@ layout = [
         sg.Button('Exit', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-EXIT-', border_width=0 , pad=((0, 10), (10, 10))),
         sg.Button('time', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Time-', border_width=0 , pad=((0, 10), (10, 10))),
         sg.Button('Generate Table', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Table-', border_width=0 , pad=((0, 10), (10, 10))),
-        sg.Button('Down', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Table-', border_width=0 , pad=((0, 10), (10, 10)))
+        sg.Button('Down', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Down-', border_width=0 , pad=((0, 10), (10, 10)))
     ],
     [sg.Image(key='-IMAGE-')],[sg.Table(values=[], headings=['time','depth'], key="-TBL1-", visible=False,auto_size_columns=True,display_row_numbers=False,justification='center',expand_x=True,
    expand_y=True,)]
@@ -87,8 +125,12 @@ while True:
             window['-IMAGE-'].update(data=png_data.getvalue(),visible=True)
             window['-TBL1-'].update(visible = False)
     elif event == '-Time-':
-        time1 = time.localtime()
-        print(time1)
+        time1 = str(time.localtime())
+        run_client(time1)
+    elif event == '-Down-':
+        down = 'Down'
+        #run_client(down)
+        receive_file()
     elif event == '-Table-':
         with open("test_output.txt") as file:
             # Read the lines

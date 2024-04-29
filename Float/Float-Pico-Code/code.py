@@ -11,11 +11,18 @@ import os
 import wifi
 import ipaddress
 from adafruit_motor import stepper
+import socketpool
 
+
+#---- Server/Wifi AP setup ----
 wifi_ssid = "Slugbotics-MATE"
 wifi_passwd = "slugbotics"
-float_ip_addr = "192.168.1.10"
-topside_ip_addr = "192.168.1.4"
+float_ip_addr = "192.168.4.1"
+topside_ip_addr = "192.168.4.17"
+Port = 5000
+buffersize = 1024
+
+#---- Modules set up ----
 
 rtc_i2c = busio.I2C(board.GP15, board.GP14)
 sd_card_spi = busio.SPI(board.GP18, board.GP19, board.GP16)
@@ -29,18 +36,31 @@ vfs = storage.VfsFat(sdcard)
 storage.mount(vfs, "/sd")
 rtc = adafruit_ds3231.DS3231(rtc_i2c)
 
-#  set static IP address
-ipv4 =  ipaddress.IPv4Address(float_ip_addr)
-netmask =  ipaddress.IPv4Address("255.255.255.0")
-gateway =  ipaddress.IPv4Address("192.168.1.150")
-wifi.radio.set_ipv4_address(ipv4=ipv4,netmask=netmask,gateway=gateway)
-# connect to your SSID
-# wifi.radio.connect(wifi_ssid, wifi_passwd)
+#---- create raspberry pi Wireless AP ----
+if wifi.radio.connected or wifi.radio.ipv4_address:
+    wifi.radio.stop_station()
+if wifi.radio.ap_active or wifi.radio.ipv4_address_ap:
+    wifi.radio.stop_ap()
+#wifi.radio.enabled = True
+wifi.radio.start_ap(ssid=wifi_ssid, password=wifi_passwd)
+wifi.radio.start_dhcp_ap()
+#wifi.radio.connect(wifi_ssid, wifi_passwd)
+#time.sleep(5)
+wifi.radio.start_station()
 
+#time.sleep(5)
+pool = socketpool.SocketPool(wifi.radio)
+#wifi.radio.stop_dhcp()
+
+# connect to your SSID
+#wifi.radio.connect(wifi_ssid, wifi_passwd)
+
+#---- Initialize Real time clock Module ----
 
 rtc.datetime = time.struct_time((2017,1,9,15,6,0,0,9,-1))
 
 
+#---- Initialize Motor ----
 
 DELAY = 0.01
 STEPS = 200
@@ -50,13 +70,13 @@ digitalio.DigitalInOut(board.GP11), # A2
 digitalio.DigitalInOut(board.GP9), # B1
 digitalio.DigitalInOut(board.GP10), # B2
 )
-
-
 for coil in coils:
     coil.direction = digitalio.Direction.OUTPUT
-    
 motor = stepper.StepperMotor(coils[0], coils[1], coils[2], coils[3], microsteps=None)
 
+#---- Initialize socket TCP Client ----
+#server_ipv4 = ipaddress.ip_address(pool.getaddrinfo(topside_ip_addr, Port)[0][4][0])
+#print("here", server_ipv4)
 # file_path = "test_output.txt"
 
 def set_rtc(hrs, min, sec):    
@@ -82,8 +102,15 @@ def movement(direction):
 def write_file(drop, pressure, time):
     with open(f'/sd/test_output{drop}.txt',"a+") as out:
        out.write(f'{time.tm_hour}:{time.tm_min}:{time.tm_sec}_{pressure}\n')
-    
+
+#print(wifi.radio.set_ipv4_address(ipv4=ipv4_address, netmask=netmask_address, gateway=gateway_address))
+
+print("Access point created with SSID: {}, password: {}".format(wifi_ssid, wifi_passwd))
+print("Self IP", wifi.radio.ipv4_address)
+print("router", wifi.radio.ipv4_gateway_ap)
+print("Subnet", wifi.radio.ipv4_subnet_ap)
 while True: 
+    time.sleep(5)
     print(mpr.pressure)
     time.sleep(1)
     t = rtc.datetime
@@ -93,3 +120,7 @@ while True:
     print("pressure reading", mpr.pressure)
     movement(False)
     motor.release()
+
+
+
+

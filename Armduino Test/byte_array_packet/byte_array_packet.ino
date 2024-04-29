@@ -54,6 +54,7 @@ int start = 0;
 
 int arm_bools = 0;
 
+int packetSize = 0;
 void setup() {
   // Start Ethernet and UDP
   Ethernet.begin(mac, ip);
@@ -72,7 +73,7 @@ void setup() {
 }
 
 void loop() {
-  int packetSize = Udp.parsePacket();
+  packetSize = Udp.parsePacket();
   if (packetSize) {
     // Receive packet
     Udp.read(receiveBuffer, packetSize);
@@ -87,17 +88,27 @@ void loop() {
     arm_bools = receiveBuffer[ARM_ENDING_POINT];
 
     // extract booleans from servo2
-    claw_increase = (arm_bools&1 == LEFT_BUMPER) ? 1 : 0;
-    claw_decrease = (arm_bools&1 == RIGHT_BUMPER) ? 1 : 0;
-    wrist_increase = (arm_bools&1 == X) ? 1 : 0;
-    wrist_decrease = (arm_bools&1 == B) ? 1: 0;
-    start = (arm_bools&1 == START) ? 1: 0;
+    // claw_increase = (arm_bools&255 == LEFT_BUMPER) ? 1 : 0;
+    // claw_decrease = (arm_bools&255 == RIGHT_BUMPER) ? 1 : 0;
+    // wrist_increase = (arm_bools&255 == X) ? 1 : 0;
+    // wrist_decrease = (arm_bools&255 == B) ? 1: 0;
+    // start = (arm_bools&1 == START) ? 1: 0;
 
     char temp[5];
-    sprintf(temp, "%d", horizontal);
-    Serial.print("horizontal: ");
-    Serial.print(temp);
-    Serial.print("\n");
+    // sprintf(temp, "%d", horizontal);
+    // Serial.print("horizontal: ");
+    // Serial.print(temp);
+    // Serial.print("\n");
+
+    Serial.println("arm_bools&1: " + String((arm_bools&255)));
+    if((arm_bools) == X){
+      Serial.println("x");
+    }
+    // Serial.print("X: " + String((X)));
+    // Serial.print("B: " + String(B));
+    // Serial.print("START: " + String(START));
+    // Serial.print("LEFT_BUMPER: " + String(LEFT_BUMPER));
+    // Serial.print("RIGHT_BUMPER: " + String(RIGHT_BUMPER));
     // Serial.print("vertical: ", vertical);
     // Serial.printf("arm_bools: "+arm_bools, HEX);
     // Serial.printf("claw_increase: "+claw_increase, HEX);
@@ -111,7 +122,10 @@ void loop() {
     // Control servos
     if((start_horizontal + horizontal) < 180 && (start_horizontal + horizontal) > 0){
      horizontalServo.write(start_horizontal += horizontal);
-     Serial.println(start_horizontal += horizontal);
+     //Serial.println(start_horizontal += horizontal);
+    }
+    if (horizontal < -10){
+      horizontal = 0;
     }
 
     if((start_vertical + vertical) < 180 && (start_vertical + vertical) > 0){

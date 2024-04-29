@@ -1,7 +1,6 @@
 from input import controller
 import vec_util
 
-
 import socket
 import time
 import math

@@ -23,6 +23,7 @@ def main() -> None:
     sg.theme("DarkBlack")
 
     layout = [
+        [sg.Push(), sg.Image(filename="", key="cam0"), sg.Image(filename="", key="cam2")],
         [sg.StatusBar("Network Status"), sg.StatusBar("Last Input Sent")],
         [sg.StatusBar("Thruster 1 status"), sg.StatusBar("Thruster 2 status")],
         [sg.StatusBar("Thruster 3 status"), sg.StatusBar("Thruster 4 status")],
@@ -31,19 +32,16 @@ def main() -> None:
     ]
 
 
-    window = sg.Window("Slugbotics Driver Station", layout, location=(0, 0), no_titlebar=True, size=(1920, 1080))
-    window.read()
-    time.sleep(1)    
+    window = sg.Window("Slugbotics Driver Station", layout, location=(0, 0), size=(1920, 1080))
 
-    cams = []
-    for i in range(1):
-        cams.append(mp.Process(target=camera_gui.display_camera(i)))
-        cams[i].start()
+    for i in [0, 2]:
+        window.start_thread(lambda: camera_gui.display_camera(i, window), ("", ""))
+
 
     # Event loop
     while True:
-        event, values = window.read(timeout=20)
-        if event == "Exit" or event == sg.WIN_CLOSED:
+        event, values = window.read()
+        if event in ("Exit", sg.WIN_CLOSED):
             break
 
     window.close()

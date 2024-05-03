@@ -18,7 +18,7 @@ import socketpool
 wifi_ssid = "Slugbotics-MATE"
 wifi_passwd = "slugbotics"
 float_ip_addr = "192.168.4.1"
-topside_ip_addr = "192.168.4.17"
+topside_ip_addr = "192.168.4.16"
 Port = 5000
 buffersize = 1024
 
@@ -75,7 +75,20 @@ for coil in coils:
 motor = stepper.StepperMotor(coils[0], coils[1], coils[2], coils[3], microsteps=None)
 
 #---- Initialize socket TCP Client ----
-#server_ipv4 = ipaddress.ip_address(pool.getaddrinfo(topside_ip_addr, Port)[0][4][0])
+
+server_ipv4 = ipaddress.ip_address(pool.getaddrinfo(topside_ip_addr, Port)[0][4][0])
+s = pool.socket(pool.AF_INET, pool.SOCK_STREAM)
+
+def tcp():
+    s.bind((topside_ip_addr, Port))
+    s.listen(2)
+    conn = s.accept()
+    #s.connect((topside_ip_addr, Port))
+    size = s.send(b'Hellow, world')
+    print('Sent', size, 'bytes')
+    s.close()
+
+
 #print("here", server_ipv4)
 # file_path = "test_output.txt"
 
@@ -86,17 +99,17 @@ def set_rtc(hrs, min, sec):
 def movement(direction):
     if(direction):
         for step in range(STEPS):
-            motor.onestep(direction=stepper.FORWARD)
+            motor.onestep(direction=stepper.FORWARD, style=stepper.DOUBLE)
             time.sleep(DELAY)
             for step in range(STEPS):
-                motor.onestep(direction=stepper.FORWARD)
+                motor.onestep(direction=stepper.FORWARD, style=stepper.DOUBLE)
                 time.sleep(DELAY)
     else:
         for step in range(STEPS):
-            motor.onestep(direction=stepper.BACKWARD)
+            motor.onestep(direction=stepper.BACKWARD, style=stepper.DOUBLE)
             time.sleep(DELAY)
             for step in range(STEPS):
-                motor.onestep(direction=stepper.BACKWARD)
+                motor.onestep(direction=stepper.BACKWARD, style=stepper.DOUBLE)
                 time.sleep(DELAY)
 
 def write_file(drop, pressure, time):
@@ -113,13 +126,21 @@ while True:
     time.sleep(5)
     print(mpr.pressure)
     time.sleep(1)
+    ip_address_topside_ipv4 = ipaddress.IPv4Address(topside_ip_addr)
     t = rtc.datetime
     time.sleep(1)
     print(t)
     print(t.tm_hour, t.tm_min, t.tm_sec)
     print("pressure reading", mpr.pressure)
-    movement(False)
-    motor.release()
+    #movement(False)
+    #motor.release()
+    ping = wifi.radio.ping(ip=ip_address_topside_ipv4)
+    if (ping == None):
+        ping = wifi.radio.ping(ip=ip_address_topside_ipv4)
+        print('Failed to connect.')
+    else:
+        print('Connection found.')
+        tcp()
 
 
 

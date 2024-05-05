@@ -21,6 +21,7 @@ float_ip_addr = "192.168.4.1"
 topside_ip_addr = "192.168.4.16"
 Port = 5000
 buffersize = 1024
+packet_timeout = 100
 
 #---- Modules set up ----
 
@@ -78,19 +79,30 @@ motor = stepper.StepperMotor(coils[0], coils[1], coils[2], coils[3], microsteps=
 
 server_ipv4 = ipaddress.ip_address(pool.getaddrinfo(topside_ip_addr, Port)[0][4][0])
 s = pool.socket(pool.AF_INET, pool.SOCK_STREAM)
+s.settimeout(packet_timeout)
 
-def tcp():
-    s.bind((topside_ip_addr, Port))
-    s.listen(2)
-    conn = s.accept()
-    #s.connect((topside_ip_addr, Port))
-    size = s.send(b'Hellow, world')
-    print('Sent', size, 'bytes')
-    s.close()
+s.bind((float_ip_addr, Port))
+s.listen(2)
 
-
-#print("here", server_ipv4)
-# file_path = "test_output.txt"
+def tcp_send_file(drop):
+    #---- Create float as server ----
+    print("Listening")
+    filetosend = open(f'/sd/test_output{drop}.txt', "rb+")
+    #buf = bytearray(buffersize)
+    conn, addr = s.accept()
+    conn.settimeout(packet_timeout)
+    print("Accepted from", addr)
+    data = filetosend.read(20)
+    conn.send(data)
+    while data:
+        print("Sending...")
+        conn.send(data)
+        data = filetosend.read(20)
+    filetosend.close()
+    conn.send(b"DONE")
+    print("Done Sending.")
+    # print(client_socket.recv(1024))
+    conn.close()  # close the connection
 
 def set_rtc(hrs, min, sec):    
     rtc.datetime = time.struct_time((2024,4,25,hrs,min,sec,3,9,-1))
@@ -140,7 +152,7 @@ while True:
         print('Failed to connect.')
     else:
         print('Connection found.')
-        tcp()
+        tcp_send_file(1)
 
 
 

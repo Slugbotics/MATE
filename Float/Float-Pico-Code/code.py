@@ -93,16 +93,33 @@ def tcp_send_file(drop):
     conn.settimeout(packet_timeout)
     print("Accepted from", addr)
     data = filetosend.read(20)
-    conn.send(data)
-    while data:
-        print("Sending...")
+    try: 
         conn.send(data)
-        data = filetosend.read(20)
-    filetosend.close()
-    conn.send(b"DONE")
-    print("Done Sending.")
-    # print(client_socket.recv(1024))
+        while data:
+            print("Sending...")
+            conn.send(data)
+            data = filetosend.read(20)
+        filetosend.close()
+        conn.send(b"DONE")
+        print("Done Sending.")
+        # print(client_socket.recv(1024))
+    except OSError as e:
+        print("Error: ", e)
     conn.close()  # close the connection
+
+def tcp_recv_text():
+    conn, addr = s.accept()
+    conn.settimeout(packet_timeout)
+    buf = bytearray(20)
+    try:
+        print("Accepted from", addr)
+        data = conn.recv_into(buf, 20)
+        print(buf[:data])
+        conn.send(b"RECEIVED")
+        print("DONE Sending")
+    except OSError as e:
+        print("Error: ", e)
+    conn.close()
 
 def set_rtc(hrs, min, sec):    
     rtc.datetime = time.struct_time((2024,4,25,hrs,min,sec,3,9,-1))
@@ -152,7 +169,8 @@ while True:
         print('Failed to connect.')
     else:
         print('Connection found.')
-        tcp_send_file(1)
+        tcp_recv_text()
+
 
 
 

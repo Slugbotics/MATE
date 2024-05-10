@@ -84,6 +84,8 @@ s.settimeout(packet_timeout)
 s.bind((float_ip_addr, Port))
 s.listen(2)
 
+
+
 def tcp_send_file(drop):
     #---- Create float as server ----
     print("Listening")
@@ -114,7 +116,9 @@ def tcp_recv_text():
     try:
         print("Accepted from", addr)
         data = conn.recv_into(buf, 20)
-        print(buf[:data])
+        converted = buf.decode('utf-8')
+        converted = converted.replace('\x00', '')
+        print(converted)
         conn.send(b"RECEIVED")
         print("DONE Sending")
     except OSError as e:

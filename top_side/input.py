@@ -80,8 +80,8 @@ class controller:
         if abs(vertical) < 0.19:
             vertical = 0 
 
-        horizontal = round((horizontal) * 10)
-        vertical = round((vertical) * 10)
+        horizontal = (round((horizontal) * 10)) + 10
+        vertical = (round((vertical) * 10)) + 10
 
         # Create and send packet
         packet = bytearray() 
@@ -89,4 +89,3 @@ class controller:
             packet.extend(field.to_bytes(1, byteorder="big", signed=True))
         packet.extend(button_array.tobytes())
         return packet
-

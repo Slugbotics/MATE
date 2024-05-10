@@ -6,11 +6,11 @@
 #define BUFFER_SIZE 11
 #define ARM_STARTING_POINT 7
 #define ARM_ENDING_POINT 9
-#define X 1<<8
-#define B 1<<7
-#define START 1<<6
-#define LEFT_BUMPER 1<<5
-#define RIGHT_BUMPER 1<<4
+#define X 1<<7 
+#define B 1<<6 
+#define START 1<<5 
+#define LEFT_BUMPER 1<<4 
+#define RIGHT_BUMPER 1<<3 
 
 // Ethernet settings
 byte mac[] = {
@@ -83,8 +83,8 @@ void loop() {
     // }
     // Serial.print("\n");
 
-    horizontal = receiveBuffer[ARM_STARTING_POINT];
-    vertical = receiveBuffer[ARM_STARTING_POINT + ELEMENT_SIZE];
+    horizontal = receiveBuffer[ARM_STARTING_POINT] - 10;
+    vertical = receiveBuffer[ARM_STARTING_POINT + ELEMENT_SIZE] - 10;
     arm_bools = receiveBuffer[ARM_ENDING_POINT];
 
     // extract booleans from servo2
@@ -100,10 +100,7 @@ void loop() {
     // Serial.print(temp);
     // Serial.print("\n");
 
-    Serial.println("arm_bools&1: " + String((arm_bools&255)));
-    if((arm_bools) == X){
-      Serial.println("x");
-    }
+    Serial.println("arm_bools&1: " + String((arm_bools)));
     // Serial.print("X: " + String((X)));
     // Serial.print("B: " + String(B));
     // Serial.print("START: " + String(START));

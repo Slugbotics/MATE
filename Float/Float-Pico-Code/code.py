@@ -12,6 +12,7 @@ import wifi
 import ipaddress
 from adafruit_motor import stepper
 import socketpool
+import time
 
 
 #---- Server/Wifi AP setup ----
@@ -20,9 +21,10 @@ wifi_passwd = "slugbotics"
 float_ip_addr = "192.168.4.1"
 topside_ip_addr = "192.168.4.16"
 Port = 5000
-buffersize = 1024
+buffersize = 20
 packet_timeout = 100
-
+number_of_turns = 2
+holding_time_sec = 20
 #---- Modules set up ----
 
 rtc_i2c = busio.I2C(board.GP15, board.GP14)
@@ -94,56 +96,77 @@ def tcp_send_file(drop):
     conn, addr = s.accept()
     conn.settimeout(packet_timeout)
     print("Accepted from", addr)
-    data = filetosend.read(20)
+    data = filetosend.read(buffersize)
     try: 
         conn.send(data)
         while data:
             print("Sending...")
             conn.send(data)
-            data = filetosend.read(20)
+            data = filetosend.read(buffersize)
         filetosend.close()
         conn.send(b"DONE")
         print("Done Sending.")
         # print(client_socket.recv(1024))
     except OSError as e:
-        print("Error: ", e)
+        print("Error: ", e.errno)
     conn.close()  # close the connection
 
 def tcp_recv_text():
     conn, addr = s.accept()
     conn.settimeout(packet_timeout)
-    buf = bytearray(20)
+    buf = bytearray(buffersize)
     try:
         print("Accepted from", addr)
-        data = conn.recv_into(buf, 20)
+        data = conn.recv_into(buf, buffersize)
         converted = buf.decode('utf-8')
         converted = converted.replace('\x00', '')
-        print(converted)
+        if "ip" in converted.lower():
+            topside_ip_addr = converted.split(" ")[1]
+        elif "rtc" in converted.lower():
+            hours = converted.split(" ")[1]
+            minutes = converted.split(" ")[2]
+            seconds = converted.split(" ")[3]
+            set_rtc(hours, minutes, seconds)
+        elif "down" in converted.lower():
+            movement(False, number_of_turns, holding_time_sec)
+        elif "up" in converted.lower():
+            movement(True, number_of_turns, holding_time_sec)
+        else:
+            print(converted)
         conn.send(b"RECEIVED")
         print("DONE Sending")
     except OSError as e:
-        print("Error: ", e)
+        print("Error: ", e.errno)
     conn.close()
 
 def set_rtc(hrs, min, sec):    
     rtc.datetime = time.struct_time((2024,4,25,hrs,min,sec,3,9,-1))
 
 # direction: up represented by true, down by false
-def movement(direction):
+def movement(direction, amount_turns, time_run):
+    # time run in seconds
     if(direction):
-        for step in range(STEPS):
-            motor.onestep(direction=stepper.FORWARD, style=stepper.DOUBLE)
-            time.sleep(DELAY)
-            for step in range(STEPS):
-                motor.onestep(direction=stepper.FORWARD, style=stepper.DOUBLE)
-                time.sleep(DELAY)
+        start_time = time.time()
+        while time_run != total_time: 
+            while amount_turns > 0:
+                for step in range(STEPS):
+                    motor.onestep(direction=stepper.FORWARD, style=stepper.DOUBLE)
+                    time.sleep(DELAY)
+                amount_turns -= 1
+            end_time = time.time()
+            total_time = end_time - start_time
     else:
-        for step in range(STEPS):
-            motor.onestep(direction=stepper.BACKWARD, style=stepper.DOUBLE)
-            time.sleep(DELAY)
-            for step in range(STEPS):
-                motor.onestep(direction=stepper.BACKWARD, style=stepper.DOUBLE)
-                time.sleep(DELAY)
+        start_time = time.time()
+        total_time = 0
+        while time_run != total_time: 
+            while amount_turns > 0:
+                for step in range(STEPS):
+                    motor.onestep(direction=stepper.FORWARD, style=stepper.DOUBLE)
+                    time.sleep(DELAY)
+                amount_turns -= 1
+            end_time = time.time()
+            total_time = end_time - start_time
+    motor.release()
 
 def write_file(drop, pressure, time):
     with open(f'/sd/test_output{drop}.txt',"a+") as out:
@@ -165,8 +188,8 @@ while True:
     print(t)
     print(t.tm_hour, t.tm_min, t.tm_sec)
     print("pressure reading", mpr.pressure)
-    #movement(False)
-    #motor.release()
+    #---- Runs the motor in 2 rotations and for 20 seconds ----
+    movement(False, number_of_turns, holding_time_sec)
     ping = wifi.radio.ping(ip=ip_address_topside_ipv4)
     if (ping == None):
         ping = wifi.radio.ping(ip=ip_address_topside_ipv4)

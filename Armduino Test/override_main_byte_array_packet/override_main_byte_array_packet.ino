@@ -3,7 +3,7 @@
 #include <Servo.h>
 #include <stdio.h>
 #define ELEMENT_SIZE 1
-#define BUFFER_SIZE 11
+#define BUFFER_SIZE 10
 #define ARM_STARTING_POINT 7
 #define ARM_ENDING_POINT 9
 #define X 1<<7 
@@ -51,11 +51,26 @@ int wrist_increase = 0; // x
 int wrist_decrease = 0; // b
 
 int start = 0;
-
 int arm_bools = 0;
-
 int packetSize = 0;
-void setup() {
+int rc;
+
+int main(){
+  init();
+  setup_wrapper();
+  Serial.print("\noverriding main\n");
+  while(2){
+    rc = loop_wrapper();
+    if (rc == -1){
+      Serial.print("continuing\n");
+      continue;
+    }
+  }
+  Serial.print("returning 0\n");
+  return 0;
+}
+
+void setup_wrapper() {
   // Start Ethernet and UDP
   Ethernet.begin(mac, ip);
   Udp.begin(localPort);
@@ -72,19 +87,18 @@ void setup() {
   // Setup other outputs
 }
 
-// int count = 0;
-void loop() {
+// returns 0 on success and -1 on failure
+int loop_wrapper() {
   packetSize = Udp.parsePacket();
-  if (packetSize && packetSize <= BUFFER_SIZE) {
+  if (packetSize > 0 && packetSize <= BUFFER_SIZE) {
+    memset(receiveBuffer, 0, BUFFER_SIZE+1);
     // Receive packet
     Udp.read(receiveBuffer, packetSize);
-    // count++;
-    // Serial.println(count);
     receiveBuffer[packetSize] = '\0';
-    for (int i =0; i < packetSize; i++){
-      Serial.print(receiveBuffer[i]); 
-    }
-    Serial.print("\n");
+    // for (int i =0; i < packetSize; i++){
+    //   Serial.print(receiveBuffer[i]); 
+    // }
+    // Serial.print("\n");
 
     horizontal = receiveBuffer[ARM_STARTING_POINT] - 10;
     vertical = receiveBuffer[ARM_STARTING_POINT + ELEMENT_SIZE] - 10;
@@ -123,14 +137,18 @@ void loop() {
     clawServo.write(claw(claw_increase, claw_decrease, 15));
    }
    if (packetSize > BUFFER_SIZE) {
+    Serial.print("packetSize = ");
+    Serial.println(packetSize);
     Serial.print("DIED\n");
-    goto loop;
+    return -1;
    }
+  //  Serial.println("0");
+   return 0;
 }
 
 int wrist(int increase, int decrease, int delta) {
   int idk = wristRotValue;
-  if (increase && !decrease && wristRotValue < (180-delta)){
+  if (increase && !decrease && wrzistRotValue < (180-delta)){
     wristRotValue += delta;
     idk = wristRotValue;
   }

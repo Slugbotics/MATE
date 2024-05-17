@@ -7,23 +7,25 @@ from PIL import Image
 import time
 import socket
 def receive_file():
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_ip = "100.64.60.135"
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_ip = "169.233.195.169"
     server_port = 8000
-    client.connect((server_ip, server_port))
+    print("hi")
+    client_socket.connect((server_ip, server_port))
 
-    filename = client.recv(1024).decode("utf-8")
-    print(f"Received: {filename}")
-    file = open(filename, "w")
-
-    data = client.recv(1024).decode("utf-8")
-    print(f"[RECV] Receiving the file data.")
-    file.write(data)
-    client.send("File data received".encode("utf-8"))
-
-    file.close()
-    client.close()
-    print("connection to server closed")
+    filetodown = open("float_data.txt", "wb+")
+    file_content = client_socket.recv(20)
+    while True:
+        while (file_content):
+            filetodown.write(file_content)
+            file_content = client_socket.recv(20)
+            print(file_content)
+        filetodown.close()
+        data = client_socket.recv(20)
+        if data == b"":
+            print("Done Receiving")
+            break
+    client_socket.close()
 
 def run_client(data):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

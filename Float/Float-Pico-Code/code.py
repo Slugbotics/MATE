@@ -11,11 +11,21 @@ import os
 import wifi
 import ipaddress
 from adafruit_motor import stepper
+import socketpool
+import time
 
+
+#---- Server/Wifi AP setup ----
 wifi_ssid = "Slugbotics-MATE"
 wifi_passwd = "slugbotics"
-float_ip_addr = "192.168.1.10"
-topside_ip_addr = "192.168.1.4"
+float_ip_addr = "192.168.4.1"
+topside_ip_addr = "192.168.4.16"
+Port = 5000
+buffersize = 20
+packet_timeout = 30
+number_of_turns = 2
+holding_time_sec = 20
+#---- Modules set up ----
 
 rtc_i2c = busio.I2C(board.GP15, board.GP14)
 sd_card_spi = busio.SPI(board.GP18, board.GP19, board.GP16)
@@ -29,18 +39,31 @@ vfs = storage.VfsFat(sdcard)
 storage.mount(vfs, "/sd")
 rtc = adafruit_ds3231.DS3231(rtc_i2c)
 
-#  set static IP address
-ipv4 =  ipaddress.IPv4Address(float_ip_addr)
-netmask =  ipaddress.IPv4Address("255.255.255.0")
-gateway =  ipaddress.IPv4Address("192.168.1.150")
-wifi.radio.set_ipv4_address(ipv4=ipv4,netmask=netmask,gateway=gateway)
-# connect to your SSID
-# wifi.radio.connect(wifi_ssid, wifi_passwd)
+#---- create raspberry pi Wireless AP ----
+if wifi.radio.connected or wifi.radio.ipv4_address:
+    wifi.radio.stop_station()
+if wifi.radio.ap_active or wifi.radio.ipv4_address_ap:
+    wifi.radio.stop_ap()
+#wifi.radio.enabled = True
+wifi.radio.start_ap(ssid=wifi_ssid, password=wifi_passwd)
+wifi.radio.start_dhcp_ap()
+#wifi.radio.connect(wifi_ssid, wifi_passwd)
+#time.sleep(5)
+wifi.radio.start_station()
 
+#time.sleep(5)
+pool = socketpool.SocketPool(wifi.radio)
+#wifi.radio.stop_dhcp()
+
+# connect to your SSID
+#wifi.radio.connect(wifi_ssid, wifi_passwd)
+
+#---- Initialize Real time clock Module ----
 
 rtc.datetime = time.struct_time((2017,1,9,15,6,0,0,9,-1))
 
 
+#---- Initialize Motor ----
 
 DELAY = 0.01
 STEPS = 200
@@ -50,46 +73,141 @@ digitalio.DigitalInOut(board.GP11), # A2
 digitalio.DigitalInOut(board.GP9), # B1
 digitalio.DigitalInOut(board.GP10), # B2
 )
-
-
 for coil in coils:
     coil.direction = digitalio.Direction.OUTPUT
-    
 motor = stepper.StepperMotor(coils[0], coils[1], coils[2], coils[3], microsteps=None)
 
-# file_path = "test_output.txt"
+#---- Initialize socket TCP Client ----
+s = pool.socket(pool.AF_INET, pool.SOCK_STREAM)
+s.settimeout(packet_timeout)
+
+s.bind((float_ip_addr, Port))
+s.listen(2)
+server_ipv4 = ipaddress.ip_address(pool.getaddrinfo(topside_ip_addr, Port)[0][4][0])
+
+
+
+def tcp_send_file(drop):
+    #---- Create float as server ----
+    print("Listening")
+    filetosend = open(f'/sd/test_output{drop}.txt', "rb+")
+    #buf = bytearray(buffersize)
+    try: 
+        conn, addr = s.accept()
+        conn.settimeout(packet_timeout)
+        print("Accepted from", addr)
+        data = filetosend.read(buffersize)
+        conn.send(data)
+        while data:
+            print("Sending...")
+            conn.send(data)
+            data = filetosend.read(buffersize)
+        filetosend.close()
+        conn.send(b"DONE")
+        print("Done Sending.")
+        # print(client_socket.recv(1024))
+        conn.close()  # close the connection
+    except OSError as e:
+        print("Error: ", e.errno)
+    
+
+def tcp_recv_text():
+    try:
+        conn, addr = s.accept()
+        conn.settimeout(packet_timeout)
+        buf = bytearray(buffersize)
+        print("Accepted from", addr)
+        data = conn.recv_into(buf, buffersize)
+        converted = buf.decode('utf-8')
+        converted = converted.replace('\x00', '')
+        if "ip" in converted.lower():
+            topside_ip_addr = converted.split(" ")[1]
+            conn.send(b"RECEIVED")
+            print("DONE Sending")
+            conn.close()
+            return topside_ip_addr
+        elif "rtc" in converted.lower():
+            hours = converted.split(" ")[1]
+            minutes = converted.split(" ")[2]
+            seconds = converted.split(" ")[3]
+            set_rtc(int(hours), int(minutes), int(seconds))
+        elif "down" in converted.lower():
+            movement(False, number_of_turns, holding_time_sec)
+        elif "up" in converted.lower():
+            movement(True, number_of_turns, holding_time_sec)
+        else:
+            print(converted)
+        conn.send(b"RECEIVED")
+        print("DONE Sending")
+        conn.close()
+    except OSError as e:
+        print("Error", e.errno )
+    return None
 
 def set_rtc(hrs, min, sec):    
     rtc.datetime = time.struct_time((2024,4,25,hrs,min,sec,3,9,-1))
 
 # direction: up represented by true, down by false
-def movement(direction):
+def movement(direction, amount_turns, time_run):
+    # time run in seconds
     if(direction):
-        for step in range(STEPS):
-            motor.onestep(direction=stepper.FORWARD)
-            time.sleep(DELAY)
-            for step in range(STEPS):
-                motor.onestep(direction=stepper.FORWARD)
-                time.sleep(DELAY)
+        start_time = time.time()
+        while time_run != total_time: 
+            while amount_turns > 0:
+                for step in range(STEPS):
+                    motor.onestep(direction=stepper.FORWARD, style=stepper.DOUBLE)
+                    time.sleep(DELAY)
+                amount_turns -= 1
+            end_time = time.time()
+            total_time = end_time - start_time
     else:
-        for step in range(STEPS):
-            motor.onestep(direction=stepper.BACKWARD)
-            time.sleep(DELAY)
-            for step in range(STEPS):
-                motor.onestep(direction=stepper.BACKWARD)
-                time.sleep(DELAY)
+        start_time = time.time()
+        total_time = 0
+        while time_run != total_time: 
+            while amount_turns > 0:
+                for step in range(STEPS):
+                    motor.onestep(direction=stepper.FORWARD, style=stepper.DOUBLE)
+                    time.sleep(DELAY)
+                amount_turns -= 1
+            end_time = time.time()
+            total_time = end_time - start_time
+    motor.release()
 
 def write_file(drop, pressure, time):
     with open(f'/sd/test_output{drop}.txt',"a+") as out:
        out.write(f'{time.tm_hour}:{time.tm_min}:{time.tm_sec}_{pressure}\n')
-    
+
+#print(wifi.radio.set_ipv4_address(ipv4=ipv4_address, netmask=netmask_address, gateway=gateway_address))
+
+print("Access point created with SSID: {}, password: {}".format(wifi_ssid, wifi_passwd))
+print("Self IP", wifi.radio.ipv4_address)
+print("router", wifi.radio.ipv4_gateway_ap)
+print("Subnet", wifi.radio.ipv4_subnet_ap)
 while True: 
+    time.sleep(5)
     print(mpr.pressure)
     time.sleep(1)
+    ip_address_topside_ipv4 = ipaddress.IPv4Address(topside_ip_addr)
+    print(ip_address_topside_ipv4)
     t = rtc.datetime
     time.sleep(1)
     print(t)
     print(t.tm_hour, t.tm_min, t.tm_sec)
     print("pressure reading", mpr.pressure)
-    movement(False)
-    motor.release()
+    #---- Runs the motor in 2 rotations and for 20 seconds ----
+    movement(False, number_of_turns, holding_time_sec)
+    ping = wifi.radio.ping(ip=ip_address_topside_ipv4)
+    if (ping == None):
+        ping = wifi.radio.ping(ip=ip_address_topside_ipv4)
+        print('Failed to connect.')
+    else:
+        print('Connection found.')
+        if not None: 
+            topside_ip_addr = tcp_recv_text()
+        else:
+            tcp_recv_text()
+
+
+
+
+

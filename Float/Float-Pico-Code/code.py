@@ -22,7 +22,7 @@ float_ip_addr = "192.168.4.1"
 topside_ip_addr = "192.168.4.16"
 Port = 5000
 buffersize = 20
-packet_timeout = 100
+packet_timeout = 30
 number_of_turns = 2
 holding_time_sec = 20
 #---- Modules set up ----
@@ -78,13 +78,12 @@ for coil in coils:
 motor = stepper.StepperMotor(coils[0], coils[1], coils[2], coils[3], microsteps=None)
 
 #---- Initialize socket TCP Client ----
-
-server_ipv4 = ipaddress.ip_address(pool.getaddrinfo(topside_ip_addr, Port)[0][4][0])
 s = pool.socket(pool.AF_INET, pool.SOCK_STREAM)
 s.settimeout(packet_timeout)
 
 s.bind((float_ip_addr, Port))
 s.listen(2)
+server_ipv4 = ipaddress.ip_address(pool.getaddrinfo(topside_ip_addr, Port)[0][4][0])
 
 
 
@@ -93,11 +92,11 @@ def tcp_send_file(drop):
     print("Listening")
     filetosend = open(f'/sd/test_output{drop}.txt', "rb+")
     #buf = bytearray(buffersize)
-    conn, addr = s.accept()
-    conn.settimeout(packet_timeout)
-    print("Accepted from", addr)
-    data = filetosend.read(buffersize)
     try: 
+        conn, addr = s.accept()
+        conn.settimeout(packet_timeout)
+        print("Accepted from", addr)
+        data = filetosend.read(buffersize)
         conn.send(data)
         while data:
             print("Sending...")
@@ -107,26 +106,31 @@ def tcp_send_file(drop):
         conn.send(b"DONE")
         print("Done Sending.")
         # print(client_socket.recv(1024))
+        conn.close()  # close the connection
     except OSError as e:
         print("Error: ", e.errno)
-    conn.close()  # close the connection
+    
 
 def tcp_recv_text():
-    conn, addr = s.accept()
-    conn.settimeout(packet_timeout)
-    buf = bytearray(buffersize)
     try:
+        conn, addr = s.accept()
+        conn.settimeout(packet_timeout)
+        buf = bytearray(buffersize)
         print("Accepted from", addr)
         data = conn.recv_into(buf, buffersize)
         converted = buf.decode('utf-8')
         converted = converted.replace('\x00', '')
         if "ip" in converted.lower():
             topside_ip_addr = converted.split(" ")[1]
+            conn.send(b"RECEIVED")
+            print("DONE Sending")
+            conn.close()
+            return topside_ip_addr
         elif "rtc" in converted.lower():
             hours = converted.split(" ")[1]
             minutes = converted.split(" ")[2]
             seconds = converted.split(" ")[3]
-            set_rtc(hours, minutes, seconds)
+            set_rtc(int(hours), int(minutes), int(seconds))
         elif "down" in converted.lower():
             movement(False, number_of_turns, holding_time_sec)
         elif "up" in converted.lower():
@@ -135,9 +139,10 @@ def tcp_recv_text():
             print(converted)
         conn.send(b"RECEIVED")
         print("DONE Sending")
+        conn.close()
     except OSError as e:
-        print("Error: ", e.errno)
-    conn.close()
+        print("Error", e.errno )
+    return None
 
 def set_rtc(hrs, min, sec):    
     rtc.datetime = time.struct_time((2024,4,25,hrs,min,sec,3,9,-1))
@@ -183,6 +188,7 @@ while True:
     print(mpr.pressure)
     time.sleep(1)
     ip_address_topside_ipv4 = ipaddress.IPv4Address(topside_ip_addr)
+    print(ip_address_topside_ipv4)
     t = rtc.datetime
     time.sleep(1)
     print(t)
@@ -196,7 +202,10 @@ while True:
         print('Failed to connect.')
     else:
         print('Connection found.')
-        tcp_recv_text()
+        if not None: 
+            topside_ip_addr = tcp_recv_text()
+        else:
+            tcp_recv_text()
 
 
 

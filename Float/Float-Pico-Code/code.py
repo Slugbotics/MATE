@@ -25,6 +25,7 @@ buffersize = 20
 packet_timeout = 30
 number_of_turns = 2
 holding_time_sec = 20
+drop = 0
 #---- Modules set up ----
 
 rtc_i2c = busio.I2C(board.GP15, board.GP14)
@@ -121,6 +122,7 @@ def tcp_recv_text():
         converted = buf.decode('utf-8')
         converted = converted.replace('\x00', '')
         if "ip" in converted.lower():
+            print("here")
             topside_ip_addr = converted.split(" ")[1]
             conn.send(b"RECEIVED")
             print("DONE Sending")
@@ -177,6 +179,8 @@ def write_file(drop, pressure, time):
     with open(f'/sd/test_output{drop}.txt',"a+") as out:
        out.write(f'{time.tm_hour}:{time.tm_min}:{time.tm_sec}_{pressure}\n')
 
+def send_the_file(drop, time):
+    return
 #print(wifi.radio.set_ipv4_address(ipv4=ipv4_address, netmask=netmask_address, gateway=gateway_address))
 
 print("Access point created with SSID: {}, password: {}".format(wifi_ssid, wifi_passwd))
@@ -194,18 +198,36 @@ while True:
     print(t)
     print(t.tm_hour, t.tm_min, t.tm_sec)
     print("pressure reading", mpr.pressure)
+
+    # topside_ip_addr = tcp_recv_text()
+    # print(str(topside_ip_addr))
+    ip_address_topside_ipv4 = ipaddress.IPv4Address(str(topside_ip_addr))
+    print("topside ip", topside_ip_addr)
     #---- Runs the motor in 2 rotations and for 20 seconds ----
+    # start time
     movement(False, number_of_turns, holding_time_sec)
     ping = wifi.radio.ping(ip=ip_address_topside_ipv4)
-    if (ping == None):
-        ping = wifi.radio.ping(ip=ip_address_topside_ipv4)
-        print('Failed to connect.')
-    else:
-        print('Connection found.')
-        if not None: 
-            topside_ip_addr = tcp_recv_text()
-        else:
-            tcp_recv_text()
+    while ping is None:
+        topside_ip_addr = tcp_recv_text()
+        if topside_ip_addr is not None:
+            print("topside ip 2", topside_ip_addr)
+            ip_address_topside_ipv4 = ipaddress.IPv4Address(str(topside_ip_addr).replace('"', ''))
+            print("failed to connect")
+            ping = wifi.radio.ping(ip=ip_address_topside_ipv4)
+            
+    tcp_recv_text()
+
+
+    # if (ping == None):
+    #     ping = wifi.radio.ping(ip=ip_address_topside_ipv4)
+    #     print('Failed to connect.')
+    # else:
+    #     print('Connection found.')
+    #     if not None: 
+    #         topside_ip_addr = tcp_recv_text()
+    #     else:
+    #         tcp_recv_text()
+            
 
 
 

@@ -71,7 +71,8 @@ class controller:
         Left_Bumper = int(self.btn_tl)
         Right_Bumper = int(self.btn_tr)
         
-        button_array = bitarray.bitarray([BTN_X, BTN_B, BTN_START, Left_Bumper, Right_Bumper, 0, 0, 0])
+        #button_array = bitarray.bitarray([BTN_X, BTN_B, BTN_START, Left_Bumper, Right_Bumper, 0, 0, 0])
+        button_array = bitarray.bitarray([0, 0, 0, 0])
           
         horizontal = x[0]
         vertical = y[1]

@@ -6,11 +6,46 @@ from reportlab.graphics import renderPM
 from PIL import Image
 import time
 import socket
+
+def send_ip():
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_ip = "192.168.4.1"
+    server_port = 5000
+    client.connect((server_ip, server_port))
+
+    data = "ip " + socket.gethostbyname(socket.gethostname())
+    print(data)
+    client.send(data.encode("utf-8"))
+    print(data)
+    response = client.recv(1024)
+    response = response.decode("utf-8")
+       
+    if response.lower() == "closed":
+        print(f"received: {response}")
+    
+    client.close()
+    print("connection to server closed")
+
+def send_down():
+    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_ip = "192.168.4.1"
+    server_port = 5000
+    client.connect((server_ip, server_port))
+    
+    client.send("down".encode("utf-8"))
+    response = client.recv(1024)
+    response = response.decode("utf-8")
+       
+    if response.lower() == "closed":
+        print(f"received: {response}")
+    
+    client.close()
+    print("connection to server closed")
+
 def receive_file():
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_ip = "169.233.195.169"
-    server_port = 8000
-    print("hi")
+    server_ip = "192.168.4.1"
+    server_port = 5000
     client_socket.connect((server_ip, server_port))
 
     filetodown = open("float_data.txt", "wb+")
@@ -22,20 +57,18 @@ def receive_file():
             print(file_content)
         filetodown.close()
         data = client_socket.recv(20)
-        if data == b"":
+        if data == b"RECEIVED":
             print("Done Receiving")
             break
     client_socket.close()
 
-def run_client(data):
+def send_time(data):
     client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    #server_ip = "0.0.0.0"
-    server_ip = "100.64.60.135"
-    server_port = 8000
-    print("test")
+    server_ip = "192.168.4.1"
+    server_port = 5000
     client.connect((server_ip, server_port))
-    print("test2")
     
+    data = "rtc " + data 
     client.send(data.encode("utf-8"))
     response = client.recv(1024)
     response = response.decode("utf-8")
@@ -79,7 +112,8 @@ layout = [
         sg.Button('Exit', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-EXIT-', border_width=0 , pad=((0, 10), (10, 10))),
         sg.Button('time', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Time-', border_width=0 , pad=((0, 10), (10, 10))),
         sg.Button('Generate Table', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Table-', border_width=0 , pad=((0, 10), (10, 10))),
-        sg.Button('Down', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Down-', border_width=0 , pad=((0, 10), (10, 10)))
+        sg.Button('Down', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Down-', border_width=0 , pad=((0, 10), (10, 10))),
+        sg.Button('IP', size=(10, 2), button_color=('white', 'black'), font=('Helvetica', 12), key='-Ip-', border_width=0 , pad=((0, 10), (10, 10)))
     ],
     [sg.Image(key='-IMAGE-')],[sg.Table(values=[], headings=['time','depth'], key="-TBL1-", visible=False,auto_size_columns=True,display_row_numbers=False,justification='center',expand_x=True,
    expand_y=True,)]
@@ -112,14 +146,7 @@ while True:
                 i += 1
             print(depth_data)
             print(time2)
-            # Extract depth data and time
-            # depth_data = list(map(float, lines[0].split('_')))
-            # time2 = list(map(float, lines[1].split('_')))
-            # Generate the graph
             graph_depth(depth_data, time2)
-            # drawing = svg2rlg("depth_graph.svg")
-            # renderPM.drawToFile(drawing, "output.png", fmt="PNG")
-            # Update the Image element with the PNG data
             image = Image.open('depth_graph.png')
             image.thumbnail((1000, 1000))  # Resize the image if needed
             png_data = io.BytesIO()
@@ -128,11 +155,12 @@ while True:
             window['-TBL1-'].update(visible = False)
     elif event == '-Time-':
         time1 = str(time.localtime())
-        run_client(time1)
+        send_time(time1)
     elif event == '-Down-':
         down = 'Down'
-        #run_client(down)
-        receive_file()
+        send_down()
+    elif event == '-Ip-':
+        send_ip()
     elif event == '-Table-':
         with open("test_output.txt") as file:
             # Read the lines
@@ -156,11 +184,6 @@ while True:
             
             window["-IMAGE-"].update(data=None)
             window["-TBL1-"].update(values=split,visible = True)
-            # window["-IMAGE-"].update(visible=False)
-            # layout = [[tbl1]]
-            # window.extend_layout(window,layout)
-            # window.close()
-            # window = sg.Window('Window', layout, no_titlebar=False, location=(0,0), size=(1200,1600), keep_on_top=True, background_color='black')
 
 
 window.close()

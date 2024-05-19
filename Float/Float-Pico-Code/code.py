@@ -26,6 +26,7 @@ packet_timeout = 30
 number_of_turns = 2
 holding_time_sec = 20
 drop = 0
+drop_total_time = 100
 #---- Modules set up ----
 
 rtc_i2c = busio.I2C(board.GP15, board.GP14)
@@ -133,8 +134,16 @@ def tcp_recv_text():
             minutes = converted.split(" ")[2]
             seconds = converted.split(" ")[3]
             set_rtc(int(hours), int(minutes), int(seconds))
+            conn.send(b"RECEIVED")
+            print("DONE Sending")
+            conn.close()
+            return "RTC"
         elif "down" in converted.lower():
             movement(False, number_of_turns, holding_time_sec)
+            conn.send(b"RECEIVED")
+            print("DONE Sending")
+            conn.close()
+            return "DOWN"
         elif "up" in converted.lower():
             movement(True, number_of_turns, holding_time_sec)
         else:
@@ -150,7 +159,7 @@ def set_rtc(hrs, min, sec):
     rtc.datetime = time.struct_time((2024,4,25,hrs,min,sec,3,9,-1))
 
 # direction: up represented by true, down by false
-def movement(direction, amount_turns, time_run):
+def movement(direction, amount_turns, time_run, drop, pressure, time):
     # time run in seconds
     if(direction):
         start_time = time.time()
@@ -158,6 +167,7 @@ def movement(direction, amount_turns, time_run):
             while amount_turns > 0:
                 for step in range(STEPS):
                     motor.onestep(direction=stepper.FORWARD, style=stepper.DOUBLE)
+                    write_file(drop, pressure, time)
                     time.sleep(DELAY)
                 amount_turns -= 1
             end_time = time.time()
@@ -169,6 +179,7 @@ def movement(direction, amount_turns, time_run):
             while amount_turns > 0:
                 for step in range(STEPS):
                     motor.onestep(direction=stepper.FORWARD, style=stepper.DOUBLE)
+                    write_file(drop, pressure, time)
                     time.sleep(DELAY)
                 amount_turns -= 1
             end_time = time.time()
@@ -205,7 +216,7 @@ while True:
     print("topside ip", topside_ip_addr)
     #---- Runs the motor in 2 rotations and for 20 seconds ----
     # start time
-    movement(False, number_of_turns, holding_time_sec)
+    #movement(False, number_of_turns, holding_time_sec)
     ping = wifi.radio.ping(ip=ip_address_topside_ipv4)
     while ping is None:
         topside_ip_addr = tcp_recv_text()
@@ -214,22 +225,23 @@ while True:
             ip_address_topside_ipv4 = ipaddress.IPv4Address(str(topside_ip_addr).replace('"', ''))
             print("failed to connect")
             ping = wifi.radio.ping(ip=ip_address_topside_ipv4)
-            
-    tcp_recv_text()
-
-
-    # if (ping == None):
-    #     ping = wifi.radio.ping(ip=ip_address_topside_ipv4)
-    #     print('Failed to connect.')
-    # else:
-    #     print('Connection found.')
-    #     if not None: 
-    #         topside_ip_addr = tcp_recv_text()
-    #     else:
-    #         tcp_recv_text()
-            
-
-
-
-
-
+    
+    result = tcp_recv_text()
+    while result != "RTC":
+        print("Waiting for RTC Set Module")
+        result = tcp_recv_text()
+    
+    result = tcp_recv_text()
+    while result != "DOWN":
+        print("Waiting for DOWN Command")
+        result = tcp_recv_text()
+   
+    start_time = time.time()
+    while drop_total_time != total_time: 
+        movement(False, number_of_turns, holding_time_sec, drop, mpr.pressure, t)
+        time.sleep(120)
+        movement(True, number_of_turns, holding_time_sec, drop, mpr.pressure, t)
+        tcp_send_file(drop)
+        end_time = time.time()
+        total_time = end_time - start_time
+        drop +=1

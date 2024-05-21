@@ -13,6 +13,7 @@ import ipaddress
 from adafruit_motor import stepper
 import socketpool
 import time
+import supervisor
 
 
 #---- Server/Wifi AP setup ----
@@ -26,6 +27,7 @@ packet_timeout = 30
 number_of_turns = 2
 holding_time_sec = 20
 drop = 0
+sink_time = 20
 drop_total_time = 100
 #---- Modules set up ----
 
@@ -82,9 +84,12 @@ motor = stepper.StepperMotor(coils[0], coils[1], coils[2], coils[3], microsteps=
 #---- Initialize socket TCP Client ----
 s = pool.socket(pool.AF_INET, pool.SOCK_STREAM)
 s.settimeout(packet_timeout)
-
-s.bind((float_ip_addr, Port))
-s.listen(2)
+try: 
+    s.bind((float_ip_addr, Port))
+    s.listen(2)
+except OSError as e:
+    print("Error", e.errno )
+    print("Error", e)
 server_ipv4 = ipaddress.ip_address(pool.getaddrinfo(topside_ip_addr, Port)[0][4][0])
 
 
@@ -111,6 +116,10 @@ def tcp_send_file(drop):
         conn.close()  # close the connection
     except OSError as e:
         print("Error: ", e.errno)
+        print("Error", e)
+    except IndexError as e:
+        print("Error", e.errno )
+        print("Error", e)
     
 
 def tcp_recv_text():
@@ -139,13 +148,14 @@ def tcp_recv_text():
             conn.close()
             return "RTC"
         elif "down" in converted.lower():
-            movement(False, number_of_turns, holding_time_sec)
+            #movement(False, number_of_turns, holding_time_sec)
             conn.send(b"RECEIVED")
             print("DONE Sending")
             conn.close()
             return "DOWN"
         elif "up" in converted.lower():
-            movement(True, number_of_turns, holding_time_sec)
+            print("UP")
+            #movement(True, number_of_turns, holding_time_sec)
         else:
             print(converted)
         conn.send(b"RECEIVED")
@@ -153,21 +163,26 @@ def tcp_recv_text():
         conn.close()
     except OSError as e:
         print("Error", e.errno )
+        print("Error", e)
+    except IndexError as e:
+        print("Error", e.errno )
+        print("Error", e)
     return None
 
 def set_rtc(hrs, min, sec):    
     rtc.datetime = time.struct_time((2024,4,25,hrs,min,sec,3,9,-1))
 
 # direction: up represented by true, down by false
-def movement(direction, amount_turns, time_run, drop, pressure, time):
+def movement(direction, amount_turns, time_run, drop, pressure, timertc):
     # time run in seconds
     if(direction):
         start_time = time.time()
+        total_time = 0
         while time_run != total_time: 
             while amount_turns > 0:
                 for step in range(STEPS):
                     motor.onestep(direction=stepper.FORWARD, style=stepper.DOUBLE)
-                    write_file(drop, pressure, time)
+                    write_file(drop, pressure, timertc)
                     time.sleep(DELAY)
                 amount_turns -= 1
             end_time = time.time()
@@ -179,16 +194,16 @@ def movement(direction, amount_turns, time_run, drop, pressure, time):
             while amount_turns > 0:
                 for step in range(STEPS):
                     motor.onestep(direction=stepper.FORWARD, style=stepper.DOUBLE)
-                    write_file(drop, pressure, time)
+                    write_file(drop, pressure, timertc)
                     time.sleep(DELAY)
                 amount_turns -= 1
             end_time = time.time()
             total_time = end_time - start_time
     motor.release()
 
-def write_file(drop, pressure, time):
+def write_file(drop, pressure, timertc):
     with open(f'/sd/test_output{drop}.txt',"a+") as out:
-       out.write(f'{time.tm_hour}:{time.tm_min}:{time.tm_sec}_{pressure}\n')
+       out.write(f'{timertc.tm_hour}:{timertc.tm_min}:{timertc.tm_sec}_{pressure}\n')
 
 def send_the_file(drop, time):
     return
@@ -225,23 +240,23 @@ while True:
             ip_address_topside_ipv4 = ipaddress.IPv4Address(str(topside_ip_addr).replace('"', ''))
             print("failed to connect")
             ping = wifi.radio.ping(ip=ip_address_topside_ipv4)
-    
-    result = tcp_recv_text()
-    while result != "RTC":
-        print("Waiting for RTC Set Module")
+    if drop == 0:
         result = tcp_recv_text()
-    
+        while result != "RTC":
+            print("Waiting for RTC Set Module")
+            result = tcp_recv_text()
+        
     result = tcp_recv_text()
     while result != "DOWN":
         print("Waiting for DOWN Command")
         result = tcp_recv_text()
-   
+    total_time = 0
     start_time = time.time()
-    while drop_total_time != total_time: 
+    while drop_total_time >= total_time: 
         movement(False, number_of_turns, holding_time_sec, drop, mpr.pressure, t)
-        time.sleep(120)
+        time.sleep(sink_time)
         movement(True, number_of_turns, holding_time_sec, drop, mpr.pressure, t)
-        tcp_send_file(drop)
         end_time = time.time()
         total_time = end_time - start_time
-        drop +=1
+    tcp_send_file(drop)
+    drop+=1

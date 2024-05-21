@@ -178,7 +178,7 @@ def movement(direction, amount_turns, time_run, drop, pressure, timertc):
     if(direction):
         start_time = time.time()
         total_time = 0
-        while time_run != total_time: 
+        while time_run >= total_time: 
             while amount_turns > 0:
                 for step in range(STEPS):
                     motor.onestep(direction=stepper.FORWARD, style=stepper.DOUBLE)
@@ -190,7 +190,7 @@ def movement(direction, amount_turns, time_run, drop, pressure, timertc):
     else:
         start_time = time.time()
         total_time = 0
-        while time_run != total_time: 
+        while time_run >= total_time: 
             while amount_turns > 0:
                 for step in range(STEPS):
                     motor.onestep(direction=stepper.FORWARD, style=stepper.DOUBLE)

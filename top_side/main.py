@@ -83,9 +83,9 @@ while True:
 
     #checksum
     checksum = (front_left + front_right + back_left + back_right + top_front + top_back) % 256
+    print(f'CHECKSUM: {checksum}')
     # Create and send packet
-    for field in [checksum, front_left, front_right, back_left, back_right, top_front, top_back]:
-        print(field)
+    print(f'MOVEMENT: {front_left}, {front_right}, {back_left}, {back_right}, {top_front}, {top_back}')
     packet = bytearray()
     for field in [checksum, front_left, front_right, back_left, back_right, top_front, top_back]:
         packet.extend(field.to_bytes(1, byteorder="big", signed=False))
@@ -93,6 +93,6 @@ while True:
     print(packet)
     logging.info(f"Sending packet: {packet}")
     client.sendto(packet, (client_addr, client_port))
-    message, addr = client.recvfrom(2000)
-    logging.info(f"Got message: {message}")
-    time.sleep(0.5)
+    # message, addr = client.recvfrom(2000)
+    # logging.info(f"Got message: {message}")
+    time.sleep(0.35)

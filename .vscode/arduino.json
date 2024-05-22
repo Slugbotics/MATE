@@ -1,3 +1,7 @@
 {
-    "port": "COM3"
+    "configuration": "PartitionScheme=default,PinNumbers=default,USBMode=default",
+    "board": "arduino:esp32:nano_nora",
+    "port": "COM11",
+    "programmer": "esptool",
+    "sketch": "Arduino_Tests\\ESP32_Test\\ESP32_Test.ino"
 }

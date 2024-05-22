@@ -17,7 +17,8 @@ void EscControl::updateEsc(int joystickValue) {
   //convert to esc range
   escValue = map(joystickValue, 0, 200, 1100, 1900);
   //send to esc
-  //esc.writeMicroseconds(escValue);
+  esc.writeMicroseconds(escValue);
+  Serial.println()
 }
 
 //get thruster values

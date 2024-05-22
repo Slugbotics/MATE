@@ -1,5 +1,7 @@
 #include "Arm.h"
 
+double scalar = 1.41732;
+
 ServoControl :: ServoControl(int pin) : escPin(pin) {}
 
 //setup function
@@ -13,8 +15,7 @@ void ServoControl :: attach(int pin){
 }
 
 void ServoControl :: write(int angle){
-  //servo.write(angle);
-  return 5;
+  servo.write((int)round(angle * scalar));
 }
 
 int ServoControl :: read(){

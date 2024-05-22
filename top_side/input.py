@@ -19,6 +19,11 @@ class controller:
         self._thread()
         self.activate_arm = False
 
+        self.horizontal_degree = 90
+        self.vertical_degree = 90
+        self.wrist_degree = 90
+        self.claw_degree = 90
+
     def _run(self):
         while True:
             for event in self.device.read():
@@ -61,6 +66,7 @@ class controller:
         _run_thread.start()
     
     def gen_packet(self):
+
         x = self.left_stick
         y = self.right_stick
 
@@ -71,8 +77,6 @@ class controller:
         Left_Bumper = int(self.btn_tl)
         Right_Bumper = int(self.btn_tr)
         
-        #button_array = bitarray.bitarray([BTN_X, BTN_B, BTN_START, Left_Bumper, Right_Bumper, 0, 0, 0])
-        button_array = bitarray.bitarray([0, 0, 0, 0])
           
         horizontal = x[0]
         vertical = y[1]
@@ -81,12 +85,28 @@ class controller:
         if abs(vertical) < 0.19:
             vertical = 0 
 
-        horizontal = (round((horizontal) * 10)) + 10
-        vertical = (round((vertical) * 10)) + 10
+        if Left_Bumper:
+            self.wrist_degree -= 10
+        if Right_Bumper:
+            self.wrist_degree += 10
+        if BTN_X:
+            self.claw_degree -= 10
+        if BTN_B:
+            self.claw_degree += 10
+
+        self.horizontal_degree += (round((horizontal) * 10)) #+ 10
+        self.vertical_degree += (round((vertical) * 10)) #+ 10
+
+        self.wrist_degree = max(0, min(127, self.wrist_degree))
+        self.claw_degree = max(0, min(127, self.claw_degree))
+        self.horizontal_degree = max(0, min(127, self.horizontal_degree))
+        self.vertical_degree = max(0, min(127, self.vertical_degree))
+
+        print(f'ARM: {self.horizontal_degree}, {self.vertical_degree}, {self.wrist_degree}, {self.claw_degree}')
+
 
         # Create and send packet
         packet = bytearray() 
-        for field in [horizontal, vertical]:
+        for field in [self.horizontal_degree, self.vertical_degree, self.wrist_degree, self.claw_degree]:
             packet.extend(field.to_bytes(1, byteorder="big", signed=True))
-        packet.extend(button_array.tobytes())
         return packet

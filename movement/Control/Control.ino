@@ -5,13 +5,13 @@
 #include "BNO055_IMU.h"
 #include "Arm.h"
 
-#define RESET_PIN 52
+#define RESET_PIN 8
 #define NUMBER_OF_THRUSTERS 6
 #define NUMBER_OF_SERVOS 4
-#define CHECKSUM_SIZE 0
+#define CHECKSUM_SIZE 1
 #define SEND_BUFFER_SIZE 1 
 #define BUFFER_SIZE (CHECKSUM_SIZE + NUMBER_OF_THRUSTERS + NUMBER_OF_SERVOS)
-//#define PRESSURE_READINGS 1
+#define PRESSURE_READINGS 1
 #define IMU_READINGS 3
 #define SEND_BUFFER_SIZE (CHECKSUM_SIZE + IMU_READINGS)
 
@@ -25,11 +25,12 @@ EscControl thrusters[NUMBER_OF_THRUSTERS] = {EscControl(9), EscControl(10), EscC
 ServoControl servos[NUMBER_OF_SERVOS] = {ServoControl(15), ServoControl(16), ServoControl(17), ServoControl(19)};
 PressureSensor pressureSensor;
 MyBNO055 myIMU;
-//int count = 0;
+double PACKET_SCALAR = 1.41732;
 
 void setup() {
   Serial.begin(9600);
   pinMode(RESET_PIN, OUTPUT);
+  digitalWrite(RESET_PIN, HIGH);
   for (int i = 0; i < NUMBER_OF_THRUSTERS; i++) {
     thrusters[i].init();
   }
@@ -41,11 +42,11 @@ void setup() {
   myIMU.begin();
 }
 
-// void rst(){
-//   digitalWrite(RESET_PIN, HIGH);
-//   delay(1000);
-//   digitalWrite(RESET_PIN, LOW);
-// }
+ void rst(){
+  digitalWrite(RESET_PIN, LOW);
+  delay(1000);
+  digitalWrite(RESET_PIN, HIGH);
+}
 
 void loop() {
   int packetSize = Udp.parsePacket();
@@ -56,7 +57,8 @@ void loop() {
     if (len == BUFFER_SIZE) {
       readData(receiveBuffer);
     } else {
-      Serial.println("Discarding packet.");
+      Serial.println("Restarting...");
+      rst();
     }
   }
 
@@ -74,6 +76,7 @@ void loop() {
   Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
   Udp.write(sendBuffer, SEND_BUFFER_SIZE);
   Udp.endPacket();
+
   //delay(1000);
 
   // count+=1;
@@ -88,6 +91,8 @@ void setupUDP() {
   //}
   Ethernet.begin(mac,ip);
   Udp.begin(localPort);
+  delay(100);
+  Serial.println("---ETHERNET CONNECTION ESTABLISHED---");
 }
 
 void readData(byte packetBuffer[]) {
@@ -108,12 +113,14 @@ void readData(byte packetBuffer[]) {
     for (int j = 0; j < NUMBER_OF_THRUSTERS; j++) {
       //update the thruster ESCs
       thrusters[j].updateEsc(thrusterValues[j]);
-      //Serial.print("Thruster: ");
-      //Serial.println(thrusterValues[j]);
+      // Serial.print("Thruster: ");
+      // Serial.println(thrusterValues[j]);
     }
     for (int k = 0; k < NUMBER_OF_SERVOS; k++) {
       //update the servo positions
       servos[k].write(servoDisplacement[k]);
+      // Serial.print("Arm: ");
+      // Serial.println(servoDisplacement[k]);
     }
   //} else {
   //  Serial.println("Checksum validation failed. Packet has not been registered.");
@@ -151,7 +158,3 @@ void readIMUData(float roll,float pitch,float yaw) {
   sendBuffer[3] = pitchByte;
   sendBuffer[4] = yawByte;
 }
-
-
-
-

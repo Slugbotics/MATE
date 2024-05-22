@@ -23,6 +23,8 @@ class controller:
         self.vertical_degree = 90
         self.wrist_degree = 90
         self.claw_degree = 90
+        
+        self.curr_cam = 0
 
     def _run(self):
         while True:
@@ -57,7 +59,18 @@ class controller:
                         self.btn_tl = ('1' if event.state == 1 else '0')
                     case "BTN_TR":
                         self.btn_tr = ('1' if event.state == 1 else '0')
+                    case "ABS_HAT0X":
+                        if event.state == 1:
+                            self.curr_cam = 2
+                        elif event.state == -1:
+                            self.curr_cam = 1
+                    case "ABS_HAT0Y":
+                        if event.state == 1:
+                            self.curr_cam = 0
+                        elif event.state == -1:
+                            self.curr_cam = 3
                     case "SYN_REPORT": break # don't care YET
+                    
                     case _:
                         print(str(event.code) + ": " + str(event.state))
     
@@ -76,6 +89,8 @@ class controller:
 
         Left_Bumper = int(self.btn_tl)
         Right_Bumper = int(self.btn_tr)
+
+        print(f'Cam: {self.curr_cam}')
         
           
         horizontal = x[0]

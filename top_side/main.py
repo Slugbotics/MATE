@@ -20,7 +20,7 @@ try:
     arm_controller = controller(ac)
 except IndexError as e:
     print("Error: operator controller not connected")
-    exit()
+#    exit()
 
 # Create logger object
 log_format = "%(asctime)s: %(message)s"
@@ -32,16 +32,16 @@ top_r_direction = (-1/math.sqrt(2), 1/math.sqrt(2))
 bot_l_direction = (-1/math.sqrt(2), 1/math.sqrt(2))
 bot_r_direction = (1/math.sqrt(2), 1/math.sqrt(2))
 
-client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+#client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_addr = "192.168.1.155"
 server_port = 8888
-client.bind((server_addr, server_port))
+#client.bind((server_addr, server_port))
 logging.info(f"Binding to {server_addr}:{server_port}")
 client_addr = "192.168.1.177"
 client_port = 8888
 
 # Start GUI thread
-gui = threading.Thread(target=gui.main)
+gui = threading.Thread(target=gui.main, args=[move_controller])
 gui.start()
 logging.info("Starting Driver GUI")
 
@@ -92,16 +92,13 @@ while True:
 
     #checksum
     checksum = (front_left + front_right + back_left + back_right + top_front + top_back) % 256
-    print(f'CHECKSUM: {checksum}')
     # Create and send packet
-    print(f'MOVEMENT: {front_left}, {front_right}, {back_left}, {back_right}, {top_front}, {top_back}')
     packet = bytearray()
     for field in [checksum, front_left, front_right, back_left, back_right, top_front, top_back]:
         packet.extend(field.to_bytes(1, byteorder="big", signed=False))
-    packet.extend(arm_controller.gen_packet())
-    print(packet)
+#    packet.extend(arm_controller.gen_packet())
     logging.info(f"Sending packet: {packet}")
-    client.sendto(packet, (client_addr, client_port))
+#    client.sendto(packet, (client_addr, client_port))
     # message, addr = client.recvfrom(2000)
     # logging.info(f"Got message: {message}")
     time.sleep(0.35)

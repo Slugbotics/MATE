@@ -66,9 +66,9 @@ class controller:
                             self.curr_cam = 1
                     case "ABS_HAT0Y":
                         if event.state == 1:
-                            self.curr_cam = 0
-                        elif event.state == -1:
                             self.curr_cam = 3
+                        elif event.state == -1:
+                            self.curr_cam = 0
                     case "SYN_REPORT": break # don't care YET
                     
                     case _:

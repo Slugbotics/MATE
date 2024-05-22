@@ -58,8 +58,6 @@ class controller:
                     case "BTN_TR":
                         self.btn_tr = ('1' if event.state == 1 else '0')
                     case "SYN_REPORT": break # don't care YET
-                        self.x_pressed = (event.state == 1)
-                        break
                     case _:
                         print(str(event.code) + ": " + str(event.state))
     

@@ -9,7 +9,6 @@ import threading
 
 import gui
 
-<<<<<<< HEAD
 try: 
     mc = 0
     move_controller = controller(mc)

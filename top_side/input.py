@@ -24,7 +24,7 @@ class controller:
         self.wrist_degree = 90
         self.claw_degree = 90
 
-   def _run(self):
+    def _run(self):
         while True:
             for event in self.device.read():
                 match str(event.code):

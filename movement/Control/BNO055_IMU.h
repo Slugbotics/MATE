@@ -15,8 +15,3 @@ private:
 
 #endif
 
-
-<<<<<<< HEAD
-=======
-
->>>>>>> c3317a0 (Update)

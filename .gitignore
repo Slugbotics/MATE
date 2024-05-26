@@ -4,3 +4,4 @@ env/
 __pycache__/
 topside_rover.log
 .vscode
+cams.txt

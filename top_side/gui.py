@@ -4,13 +4,14 @@ displays:
 - camera / opencv output
 - network info
 
-This program will ask for permission to read the webcam (popup)'''
+'''
 
 import PySimpleGUI as sg
 
 import camera_gui
 
-def main() -> None:
+
+def main(controller) -> None:
     cams = []
     # Place each camera index on each new line in top_side/cams.txt
     # order of cams, front, left, right, back
@@ -26,12 +27,14 @@ def main() -> None:
         [sg.StatusBar("Network Status"), sg.StatusBar("Last Input Sent")],
         [sg.StatusBar("Thruster 1 status"), sg.StatusBar("Thruster 2 status")],
         [sg.StatusBar("Thruster 3 status"), sg.StatusBar("Thruster 4 status")],
-        [sg.Push(), sg.Button("Exit", size=(10, 1))],
-
+        [sg.Push(), sg.Button("Exit", size=(10, 1))]
     ]
 
     window = sg.Window("Slugbotics Driver Station", layout, location=(0, 0), size=(1920, 1080))
-    window.start_thread(lambda: camera_gui.display_camera(curr_device_num, window), ("", ""))
+    feed = camera_gui.CameraFeed(window, controller)
+    feed.enable()
+    window.start_thread(lambda: feed.run(), ("", ""))
+
 
     # Event loop
     while True:
@@ -39,7 +42,8 @@ def main() -> None:
         if event in ("Exit", sg.WIN_CLOSED):
             break
 
+    feed.disable()
+    del feed
     window.close()
  
-if __name__ == "__main__":
-    main()
+

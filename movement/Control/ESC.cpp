@@ -9,15 +9,16 @@ void EscControl::init() {
   //reference pin
   esc.attach(escPin);
   //send to esc 
-  esc.writeMicroseconds(1500);
+  //esc.writeMicroseconds(1500);
 }
 
 //write esc values
 void EscControl::updateEsc(int joystickValue) {
   //convert to esc range
-  escValue = map(joystickValue, -100, 100, 1100, 1900);
+  escValue = map(joystickValue, 0, 200, 1100, 1900);
   //send to esc
   esc.writeMicroseconds(escValue);
+  Serial.println()
 }
 
 //get thruster values

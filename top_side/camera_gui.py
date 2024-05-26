@@ -9,6 +9,7 @@ import PySimpleGUI as sg
 
 import time
 
+
 class CameraFeed:
     def __init__(self, window, controller):
         """takes controller to switch cameras"""

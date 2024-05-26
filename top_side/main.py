@@ -45,6 +45,11 @@ gui = threading.Thread(target=gui.main, args=[move_controller])
 gui.start()
 logging.info("Starting Driver GUI")
 
+# Start GUI thread
+gui = threading.Thread(target=gui.main)
+gui.start()
+logging.info("Starting Driver GUI")
+
 while True:
 
     translation = move_controller.left_stick

@@ -138,7 +138,7 @@ void readIMUData(float x,float y,float z) {
   byte yByte = mapValueToByte(y);
   byte zByte = mapValueToByte(z);
   //assemble send buffer for orientation data
-  sendBuffer[1] = rollByte;
-  sendBuffer[2] = pitchByte;
-  sendBuffer[3] = yawByte;
+  sendBuffer[1] = xByte;
+  sendBuffer[2] = yByte;
+  sendBuffer[3] = zByte;
 }

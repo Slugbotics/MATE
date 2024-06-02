@@ -10,7 +10,6 @@
 #define CHECKSUM_SIZE 1
 #define SEND_BUFFER_SIZE 1 
 #define BUFFER_SIZE (CHECKSUM_SIZE + NUMBER_OF_THRUSTERS + NUMBER_OF_SERVOS)
-#define PRESSURE_READINGS 1
 #define IMU_READINGS 3
 #define SEND_BUFFER_SIZE (CHECKSUM_SIZE + IMU_READINGS)
 
@@ -22,7 +21,6 @@ byte sendBuffer[SEND_BUFFER_SIZE];
 EthernetUDP Udp;
 EscControl thrusters[NUMBER_OF_THRUSTERS] = {EscControl(9), EscControl(10), EscControl(11), EscControl(12), EscControl(13), EscControl(14)};
 ServoControl servos[NUMBER_OF_SERVOS] = {ServoControl(15), ServoControl(16), ServoControl(17), ServoControl(19)};
-PressureSensor pressureSensor;
 MyBNO055 myIMU;
 double PACKET_SCALAR = 1.41732;
 
@@ -37,7 +35,6 @@ void setup() {
     servos[j].init();
   }
   setupUDP();
-  pressureSensor.begin();
   myIMU.begin();
 }
 
@@ -61,23 +58,15 @@ void loop() {
     }
   }
 
-  //assemble send buffer
-  sendBuffer[1] = pressureByte;
-  //get orientation data from IMU
-  float roll, pitch, yaw;
-  readIMUData(roll,pitch,yaw);
+  //get acceleration data from IMU
+  float x, y, z;
+  readIMUData(x,y,z);
 
   //send outgoing packet
   Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
   Udp.write(sendBuffer, SEND_BUFFER_SIZE);
   Udp.endPacket();
 
-  //delay(1000);
-
-  // count+=1;
-  // if(count==4){
-  //   rst();
-  // }
 }
 
 void setupUDP() {
@@ -142,14 +131,14 @@ byte mapValueToByte(float value) {
   return static_cast<byte>(constrain(mappedValue, 0, 255));
 }
 
-void readIMUData(float roll,float pitch,float yaw) {
-  myIMU.getOrientation(&roll, &pitch, &yaw);
+void readIMUData(float x,float y,float z) {
+  myIMU.getOrientation(&x, &y, &z);
   //scale orientation data to fit within the range of 0 to 255
-  byte rollByte = mapValueToByte(roll);
-  byte pitchByte = mapValueToByte(pitch);
-  byte yawByte = mapValueToByte(yaw);
+  byte xByte = mapValueToByte(x);
+  byte yByte = mapValueToByte(y);
+  byte zByte = mapValueToByte(z);
   //assemble send buffer for orientation data
-  sendBuffer[2] = rollByte;
-  sendBuffer[3] = pitchByte;
-  sendBuffer[4] = yawByte;
+  sendBuffer[1] = rollByte;
+  sendBuffer[2] = pitchByte;
+  sendBuffer[3] = yawByte;
 }

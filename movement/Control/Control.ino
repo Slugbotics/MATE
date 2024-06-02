@@ -58,14 +58,14 @@ void loop() {
     }
   }
 
-  //get acceleration data from IMU
-  float x, y, z;
-  readIMUData(x,y,z);
+  // //get acceleration data from IMU
+  // float x, y, z;
+  // readIMUData(x,y,z);
 
-  //send outgoing packet
-  Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
-  Udp.write(sendBuffer, SEND_BUFFER_SIZE);
-  Udp.endPacket();
+  // //send outgoing packet
+  // Udp.beginPacket(Udp.remoteIP(), Udp.remotePort());
+  // Udp.write(sendBuffer, SEND_BUFFER_SIZE);
+  // Udp.endPacket();
 
 }
 

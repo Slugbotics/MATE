@@ -16,7 +16,7 @@ void MyBNO055::getOrientation(float* roll, float* pitch, float* yaw) {
 
 void MyBNO055::getAcceleration(float* x, float* y, float* z){
     sensors_event_t accelerationData;
-    bno.getEvenet(&accellerationData, Adafruit_BNO055::VECTOR_ACCELEROMETER);
+    bno.getEvent(&accellerationData, Adafruit_BNO055::VECTOR_ACCELEROMETER);
     *x = accelerationData.acceleration.x;
     *y = accelerationData.acceleration.y;
     *z = accelerationData.acceleration.z;

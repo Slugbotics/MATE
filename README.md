@@ -12,12 +12,15 @@ Donts:
 Dos:
 - Use feature branches, make pull requests, squash and merge
 - Keep branches to one feature at most
+- Name the branch a one to two word description of the feature
 - Use interactive rebase as the default merge strategy
 - Format your code using clang-format (c++) or black (python)
+- Commit messages should always be descriptive and with the following format:
+    - "<Imperative Verb> <description of change>"
 
 Python Standards:
 - Use type declarations / hints for all functions
-- write docstrings for non-obvious functiions / methods
+- write docstrings for non-obvious functions / methods
 - always write docstrings for classes
 - keep commenting minimal, if you code is not obvious, it is probably too complicated
 - keep nesting minimal, if you can nest less, you probably should

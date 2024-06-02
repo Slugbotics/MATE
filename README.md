@@ -1,4 +1,26 @@
-# MATE-2023
+# MATE
+
+## Git Standards
+When making changes to the codebase, use feature branches. Tutorial can be found here https://medium.com/@stephencweiss/a-beginners-guide-to-feature-branch-workflows-with-git-7ae442df8e11
+
+Donts:
+- Do not push directly onto main, make a branch, make a pr, squash and merge.
+- Do not let branches sit for too long, if they arent merged within a week or two, discard it and move on.
+- Do not make changes to the build system without adding them to this README
+- Do not add dependencies without adding them to requirements.txt
+
+Dos:
+- Use feature branches, make pull requests, squash and merge
+- Keep branches to one feature at most
+- Use interactive rebase as the default merge strategy
+- Format your code using clang-format (c++) or black (python)
+
+Python Standards:
+- Use type declarations / hints for all functions
+- write docstrings for non-obvious functiions / methods
+- always write docstrings for classes
+- keep commenting minimal, if you code is not obvious, it is probably too complicated
+- keep nesting minimal, if you can nest less, you probably should
 
 ## Installation
 - Install virtualenv https://virtualenv.pypa.io/en/latest/installation.html

@@ -53,8 +53,8 @@ void loop() {
     if (len == BUFFER_SIZE) {
       readData(receiveBuffer);
     } else {
-      Serial.println("Restarting...");
-      rst();
+      Serial.println("Discarding packet due to incorrect size & Flushing buffer.");
+      Udp.flush();
     }
   }
 

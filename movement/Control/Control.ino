@@ -1,7 +1,6 @@
 #include <Ethernet.h>
 #include <EthernetUdp.h>
 #include "ESC.h"
-#include "PressureSensor.h"
 #include "BNO055_IMU.h"
 #include "Arm.h"
 
@@ -61,10 +60,6 @@ void loop() {
       rst();
     }
   }
-
-  //send pressure reading back
-  float pressureReading = pressureSensor.readPressure();
-  byte pressureByte = static_cast<byte>(pressureReading);
 
   //assemble send buffer
   sendBuffer[1] = pressureByte;

@@ -16,7 +16,7 @@ Dos:
 - Use interactive rebase as the default merge strategy
 - Format your code using clang-format (c++) or black (python)
 - Commit messages should always be descriptive and with the following format:
-    - "<Imperative Verb> <description of change>"
+    - "\<Imperative Verb> \<description of change>"
 
 Python Standards:
 - Use type declarations / hints for all functions

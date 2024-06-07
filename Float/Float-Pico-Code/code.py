@@ -27,7 +27,6 @@ packet_timeout = 30
 number_of_turns = 2
 holding_time_sec = 20
 drop = 0
-sink_time = 20
 drop_total_time = 100
 #---- Modules set up ----
 
@@ -46,8 +45,12 @@ rtc = adafruit_ds3231.DS3231(rtc_i2c)
 #---- create raspberry pi Wireless AP ----
 if wifi.radio.connected or wifi.radio.ipv4_address:
     wifi.radio.stop_station()
-if wifi.radio.ap_active or wifi.radio.ipv4_address_ap:
     wifi.radio.stop_ap()
+    wifi.radio.stop_dhcp_ap()
+if wifi.radio.ap_active or wifi.radio.ipv4_address_ap:
+    wifi.radio.stop_station()
+    wifi.radio.stop_ap()
+    wifi.radio.stop_dhcp_ap()
 #wifi.radio.enabled = True
 wifi.radio.start_ap(ssid=wifi_ssid, password=wifi_passwd)
 wifi.radio.start_dhcp_ap()
@@ -94,7 +97,7 @@ server_ipv4 = ipaddress.ip_address(pool.getaddrinfo(topside_ip_addr, Port)[0][4]
 
 
 
-def tcp_send_file(drop):
+def tcp_send_file(drop, number_of_tries):
     #---- Create float as server ----
     print("Listening")
     filetosend = open(f'/sd/test_output{drop}.txt', "rb+")
@@ -114,15 +117,23 @@ def tcp_send_file(drop):
         print("Done Sending.")
         # print(client_socket.recv(1024))
         conn.close()  # close the connection
+        return "Finish"
     except OSError as e:
-        print("Error: ", e.errno)
-        print("Error", e)
-    except IndexError as e:
+        print(number_of_tries)
         print("Error", e.errno )
         print("Error", e)
+        if number_of_tries >= 5:
+            crash_reset()
+    except IndexError as e:
+        print(number_of_tries)
+        print("Error", e.errno )
+        print("Error", e)
+        if number_of_tries >= 5:
+            crash_reset()
+    return None
     
 
-def tcp_recv_text():
+def tcp_recv_text(number_of_tries):
     try:
         conn, addr = s.accept()
         conn.settimeout(packet_timeout)
@@ -162,11 +173,17 @@ def tcp_recv_text():
         print("DONE Sending")
         conn.close()
     except OSError as e:
+        print(number_of_tries)
         print("Error", e.errno )
         print("Error", e)
+        if number_of_tries >= 5:
+            crash_reset()
     except IndexError as e:
         print("Error", e.errno )
         print("Error", e)
+        print(number_of_tries)
+        if number_of_tries >= 5:
+            crash_reset()
     return None
 
 def set_rtc(hrs, min, sec):    
@@ -178,7 +195,7 @@ def movement(direction, amount_turns, time_run, drop, pressure, timertc):
     if(direction):
         start_time = time.time()
         total_time = 0
-        while time_run >= total_time: 
+        while time_run != total_time: 
             while amount_turns > 0:
                 for step in range(STEPS):
                     motor.onestep(direction=stepper.FORWARD, style=stepper.DOUBLE)
@@ -190,7 +207,7 @@ def movement(direction, amount_turns, time_run, drop, pressure, timertc):
     else:
         start_time = time.time()
         total_time = 0
-        while time_run >= total_time: 
+        while time_run != total_time: 
             while amount_turns > 0:
                 for step in range(STEPS):
                     motor.onestep(direction=stepper.FORWARD, style=stepper.DOUBLE)
@@ -205,8 +222,10 @@ def write_file(drop, pressure, timertc):
     with open(f'/sd/test_output{drop}.txt',"a+") as out:
        out.write(f'{timertc.tm_hour}:{timertc.tm_min}:{timertc.tm_sec}_{pressure}\n')
 
-def send_the_file(drop, time):
-    return
+def crash_reset():
+    import supervisor
+    supervisor.reload()
+    print("Soft reset")
 #print(wifi.radio.set_ipv4_address(ipv4=ipv4_address, netmask=netmask_address, gateway=gateway_address))
 
 print("Access point created with SSID: {}, password: {}".format(wifi_ssid, wifi_passwd))
@@ -233,30 +252,49 @@ while True:
     # start time
     #movement(False, number_of_turns, holding_time_sec)
     ping = wifi.radio.ping(ip=ip_address_topside_ipv4)
+
+
+    numer_of_tries = 0
+    print(ping)
     while ping is None:
-        topside_ip_addr = tcp_recv_text()
+        topside_ip_addr = tcp_recv_text(numer_of_tries)
         if topside_ip_addr is not None:
             print("topside ip 2", topside_ip_addr)
             ip_address_topside_ipv4 = ipaddress.IPv4Address(str(topside_ip_addr).replace('"', ''))
             print("failed to connect")
             ping = wifi.radio.ping(ip=ip_address_topside_ipv4)
+        numer_of_tries += 1
+
+
+    number_of_tries = 0
     if drop == 0:
-        result = tcp_recv_text()
+        result = tcp_recv_text(number_of_tries)
         while result != "RTC":
+            number_of_tries += 1
             print("Waiting for RTC Set Module")
-            result = tcp_recv_text()
-        
-    result = tcp_recv_text()
+            result = tcp_recv_text(number_of_tries)
+    
+
+    number_of_tries = 0
+    result = tcp_recv_text(number_of_tries)
     while result != "DOWN":
+        number_of_tries += 1
         print("Waiting for DOWN Command")
-        result = tcp_recv_text()
+        result = tcp_recv_text(number_of_tries)
+
+    
     total_time = 0
     start_time = time.time()
-    while drop_total_time >= total_time: 
+    while drop_total_time != total_time: 
         movement(False, number_of_turns, holding_time_sec, drop, mpr.pressure, t)
-        time.sleep(sink_time)
+        time.sleep(120)
         movement(True, number_of_turns, holding_time_sec, drop, mpr.pressure, t)
         end_time = time.time()
         total_time = end_time - start_time
-    tcp_send_file(drop)
-    drop+=1
+
+    
+    number_of_tries = 0
+    tcp_send_result = tcp_send_file(drop, number_of_tries)
+    while tcp_send_result is None:
+        number_of_tries +=1
+        tcp_send_result = tcp_send_file(drop, number_of_tries)
